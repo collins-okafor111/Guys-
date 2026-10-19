@@ -1,0 +1,244 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile representation in Shopza",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "enum": ["buyer", "seller", "admin"] },
+        "avatarUrl": { "type": "string", "maxLength": 2048 },
+        "bio": { "type": "string", "maxLength": 1000 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "emailVerified": { "type": "boolean" },
+        "authProvider": { "type": "string", "enum": ["email", "google"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "name", "email", "role", "createdAt", "updatedAt"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Seller store profile on Shopza",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "slug": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "logoUrl": { "type": "string", "maxLength": 2048 },
+        "bannerUrl": { "type": "string", "maxLength": 2048 },
+        "categories": { "type": "array" },
+        "status": { "type": "string", "enum": ["open", "closed", "pending", "suspended"] },
+        "isVerified": { "type": "boolean" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "followersCount": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "slug", "description", "status", "createdAt", "updatedAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product listing for sale on Shopza",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 256 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "maxLength": 8 },
+        "category": { "type": "string", "maxLength": 128 },
+        "images": { "type": "array" },
+        "inventory": { "type": "number" },
+        "status": { "type": "string", "enum": ["published", "draft", "archived", "out_of_stock"] },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "storeName": { "type": "string", "maxLength": 128 },
+        "storeVerified": { "type": "boolean" },
+        "storeSlug": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "storeId", "sellerId", "title", "price", "category", "inventory", "status", "createdAt", "updatedAt"]
+    },
+    "CartItem": {
+      "title": "CartItem",
+      "description": "Item in user shopping cart",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "productId": { "type": "string", "maxLength": 128 },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "quantity": { "type": "number" },
+        "priceAtAddition": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "productId", "storeId", "quantity", "priceAtAddition", "createdAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Marketplace purchase order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "buyerId": { "type": "string", "maxLength": 128 },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "orderNumber": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] },
+        "paymentStatus": { "type": "string", "enum": ["pending", "paid", "failed", "refunded"] },
+        "subtotal": { "type": "number" },
+        "shippingFee": { "type": "number" },
+        "platformCommission": { "type": "number" },
+        "total": { "type": "number" },
+        "shippingAddress": { "type": "object" },
+        "trackingNumber": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "buyerId", "storeId", "sellerId", "orderNumber", "status", "paymentStatus", "subtotal", "total", "createdAt", "updatedAt"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "Buyer following a store or seller",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "followerId": { "type": "string", "maxLength": 128 },
+        "followedSellerId": { "type": "string", "maxLength": 128 },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "followerId", "followedSellerId", "createdAt"]
+    },
+    "Favorite": {
+      "title": "Favorite",
+      "description": "User bookmarked product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "productId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "productId", "createdAt"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Direct message thread between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "participantIds": { "type": "array" },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "lastMessage": { "type": "string", "maxLength": 1000 },
+        "lastMessageTimestamp": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "participantIds", "lastMessageTimestamp", "updatedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message within a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "text": { "type": "string", "maxLength": 2000 },
+        "attachmentUrl": { "type": "string", "maxLength": 2048 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "conversationId", "senderId", "text", "read", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User in-app notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["order", "follow", "message", "status", "system"] },
+        "title": { "type": "string", "maxLength": 256 },
+        "message": { "type": "string", "maxLength": 2000 },
+        "link": { "type": "string", "maxLength": 512 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "type", "title", "message", "read", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer rating and review for a product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "productId": { "type": "string", "maxLength": 128 },
+        "storeId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "number" },
+        "userName": { "type": "string", "maxLength": 128 },
+        "userAvatar": { "type": "string", "maxLength": 2048 }
+      },
+      "required": ["id", "productId", "storeId", "userId", "rating", "comment", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User account documents"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Store profiles created by sellers"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Marketplace product listings"
+    },
+    "/users/{userId}/cartItems/{cartItemId}": {
+      "schema": "CartItem",
+      "description": "Shopping cart items for a user"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders placed by buyers"
+    },
+    "/follows/{followId}": {
+      "schema": "Follow",
+      "description": "Store follow relationships"
+    },
+    "/favorites/{favoriteId}": {
+      "schema": "Favorite",
+      "description": "Product bookmarking"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Chat conversations"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages inside conversations"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Product reviews"
+    }
+  }
+}

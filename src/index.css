@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand Canvas from Shopza Logo */
+  --shopza-blue: #0066FF;
+  --shopza-purple: #7928CA;
+  --shopza-cyan: #00C2FF;
+  --shopza-dark: #060813;
+  --shopza-surface: #0A0D1D;
+  --shopza-card: #0F142A;
+  --shopza-elevated: #151C3B;
+
+  /* Typography */
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  /* Borders */
+  --border-subtle: rgba(0, 102, 255, 0.18);
+  --border-glow: rgba(121, 40, 202, 0.35);
+}
+
+body {
+  background-color: #060813;
+  color: #F8FAFC;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom Sleek Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060813;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #171E3D;
+  border-radius: 9999px;
+  border: 2px solid #060813;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0066FF;
+}
+
+/* Shopza Official Logo & Theme Utilities */
+.shopza-gradient {
+  background: linear-gradient(135deg, #0066FF 0%, #4F46E5 50%, #7928CA 100%);
+}
+
+.shopza-gradient-text {
+  background: linear-gradient(135deg, #0066FF 0%, #6366F1 50%, #7928CA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.shopza-gradient-reverse-text {
+  background: linear-gradient(135deg, #7928CA 0%, #4F46E5 50%, #00C2FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.shopza-glow {
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.25), 0 0 50px rgba(121, 40, 202, 0.15);
+}
+
+.shopza-card-border {
+  border: 1px solid rgba(0, 102, 255, 0.18);
+}
+
+.shopza-card-border:hover {
+  border-color: rgba(121, 40, 202, 0.45);
+}
