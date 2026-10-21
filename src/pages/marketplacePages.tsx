@@ -119,8 +119,8 @@ export const MarketplaceHomePage: React.FC<MarketplacePageProps> = ({
             <StoreCard
               key={st._id}
               store={st}
-              onViewStore={() => onOpenStore(st.slug)}
-              onFollowToggle={() => {}}
+              onSelect={(store) => onOpenStore(store.slug)}
+              onOpenAuth={() => onOpenAuth("login")}
             />
           ))}
         </div>
@@ -271,6 +271,7 @@ export const StoresDirectoryPage: React.FC<MarketplacePageProps> = ({
   stores,
   onOpenStore,
   onNavigate,
+  onOpenAuth,
 }) => {
   const [search, setSearch] = useState("");
 
@@ -311,8 +312,8 @@ export const StoresDirectoryPage: React.FC<MarketplacePageProps> = ({
           <StoreCard
             key={st._id}
             store={st}
-            onViewStore={() => onOpenStore(st.slug)}
-            onFollowToggle={() => {}}
+            onSelect={(store) => onOpenStore(store.slug)}
+            onOpenAuth={() => onOpenAuth("login")}
           />
         ))}
       </div>

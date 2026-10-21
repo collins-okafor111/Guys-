@@ -1,0 +1,1037 @@
+PROJECT NAME: SHOPZA
+
+PROJECT TYPE: Professional, production-ready, multi-vendor
+e-commerce marketplace.
+
+PRIMARY OBJECTIVE:
+
+Transform my existing Shopza application into a complete,
+professional, fully functional e-commerce marketplace.
+
+IMPORTANT: I am not asking for a demo, prototype, mockup, or
+frontend-only application.
+
+I want a REAL application with a properly configured backend,
+persistent database, secure authentication, real product data,
+working customer and seller accounts, real order processing,
+buyer-seller messaging, product reviews, store following,
+notifications, and an administrator dashboard.
+
+Every feature must connect to the backend and database.
+
+Do not create buttons that only change the interface without
+performing their intended actions.
+
+Do not use fake products, fake users, fake sales, fake reviews,
+fake orders, fake notifications, hardcoded dashboard statistics,
+or simulated payment confirmations.
+
+If a feature cannot be fully implemented because credentials,
+external services, or configuration are missing, explain what
+is missing and implement everything that can be completed safely.
+
+==================================================
+1. FIRST: INSPECT MY EXISTING PROJECT
+==================================================
+
+Before modifying anything:
+
+1. Extract and inspect the entire existing project.
+2. Identify the frontend framework and build system.
+3. Identify the existing backend architecture.
+4. Identify the database and authentication system, if any.
+5. Inspect all existing pages, components, routes, and assets.
+6. Inspect the current logo, colors, typography, and design.
+7. Inspect existing API integrations.
+8. Identify incomplete features and nonfunctional buttons.
+9. Identify mock data, demo products, placeholder notifications,
+   fake dashboards, and simulated backend responses.
+10. Identify build errors, configuration problems, and security
+    vulnerabilities.
+
+Create a clear assessment of what already works and what needs
+to be fixed.
+
+Do not immediately replace the entire application.
+
+Preserve existing working functionality and useful components.
+
+Keep the Shopza brand identity and improve the interface where
+necessary.
+
+Do not remove existing features without a clear technical reason.
+
+If the current backend is functional, improve it rather than
+replacing it unnecessarily.
+
+If there is no proper backend, implement one.
+
+Do not claim that something works unless you have tested it.
+
+==================================================
+2. PROFESSIONAL UI AND USER EXPERIENCE
+==================================================
+
+Build a polished, modern, responsive e-commerce application.
+
+The application must work well on:
+- Android phones.
+- iPhones.
+- Tablets.
+- Desktop computers.
+- Different screen sizes and resolutions.
+
+Use the existing Shopza logo.
+
+Apply the established Shopza brand colors consistently across
+the application.
+
+Create a professional shopping experience with:
+
+- Modern homepage.
+- Product categories.
+- Product search.
+- Product cards.
+- Product detail pages.
+- Seller store pages.
+- Shopping cart.
+- Checkout.
+- Customer account pages.
+- Seller dashboard.
+- Administrator dashboard.
+- Order history.
+- Notifications.
+- Messaging.
+- Wishlist.
+- Reviews and ratings.
+- Loading states.
+- Empty states.
+- Error states.
+- Success messages.
+- Confirmation dialogs.
+- Responsive navigation.
+
+Add subtle, professional animations where appropriate.
+
+Do not allow animations to make the application slow.
+
+Use clear product images and consistent image dimensions.
+
+Never display broken images or misleading placeholder products
+as if they were real listings.
+
+If the database is empty, display a professional empty state.
+
+==================================================
+3. REAL DATABASE AND BACKEND
+==================================================
+
+The database must be the single reliable source of truth for
+important application data.
+
+Inspect the existing backend before choosing a database.
+
+If the project already uses a suitable database, continue using
+it unless there is a compelling reason to migrate.
+
+If the project has no proper database, use PostgreSQL with a
+suitable backend platform such as Supabase, or another
+well-designed PostgreSQL backend.
+
+Do not create a second competing backend unnecessarily.
+
+Implement proper database relationships, foreign keys,
+constraints, indexes, validation, and appropriate transactions.
+
+Use unique identifiers for database records.
+
+The database must persist information after:
+- The user closes the application.
+- The user signs out and signs in again.
+- The application is refreshed.
+- The user changes devices.
+- The server restarts.
+
+Do not use browser local storage as the primary database for
+orders, payments, reviews, messages, followers, or notifications.
+
+Local storage may be used for non-sensitive preferences or
+temporary interface state where appropriate.
+
+Create appropriate database tables for:
+
+- User profiles.
+- Stores.
+- Store followers.
+- Products.
+- Product images.
+- Product variants.
+- Inventory.
+- Categories.
+- Carts.
+- Cart items.
+- Wishlists.
+- Wishlist items.
+- Saved addresses.
+- Orders.
+- Order items.
+- Seller orders.
+- Payments.
+- Refunds.
+- Conversations.
+- Conversation members.
+- Messages.
+- Product reviews.
+- Store reviews.
+- Review responses.
+- Notifications.
+- Device tokens.
+- Notification delivery records.
+- Shipping records.
+- Return requests.
+- Coupons.
+- Promotions.
+- Reports.
+- Audit logs.
+
+Use appropriate foreign keys and access rules.
+
+Prevent duplicate relationships and inconsistent records.
+
+Do not store sensitive payment credentials or unnecessary
+personal information in database tables.
+
+Create database migrations or schema scripts so that the
+database can be initialized and updated reproducibly.
+
+==================================================
+4. CUSTOMER AUTHENTICATION AND ACCOUNTS
+==================================================
+
+Implement functional customer authentication.
+
+Features:
+
+- Customer registration.
+- Customer sign-in.
+- Sign-out.
+- Secure password reset.
+- Email verification where configured.
+- Phone verification if required by the chosen workflow.
+- Customer profile.
+- Profile picture.
+- Contact information.
+- Saved addresses.
+- Account settings.
+- Account deletion workflow.
+- Session management.
+
+Associate customer data with the authenticated account.
+
+A customer must see the same account data when signing in
+on another device.
+
+Do not trust a user ID supplied by the frontend alone.
+
+Enforce authentication and authorization on the server or
+through correctly configured database access policies.
+
+Never expose private account information to other customers.
+
+==================================================
+5. SELLER REGISTRATION AND STORE MANAGEMENT
+==================================================
+
+Allow qualified users to become sellers.
+
+Create a complete seller registration workflow.
+
+Each seller must have a store profile containing:
+
+- Store ID.
+- Store name.
+- Store logo.
+- Store banner.
+- Store description.
+- Contact information.
+- Store policies.
+- Verification status.
+- Publication status.
+- Creation date.
+
+Each store must be linked to its owner.
+
+Implement seller dashboards with real database information.
+
+Sellers must be able to:
+
+- Create and edit their stores.
+- Add products.
+- Edit products.
+- Upload product images.
+- Manage product variants.
+- Set prices.
+- Manage inventory.
+- Publish and unpublish listings.
+- Archive products.
+- View their own orders.
+- Process eligible orders.
+- Update fulfilment status.
+- View reviews.
+- Respond to reviews.
+- Reply to customer messages.
+- View their followers.
+- Receive notifications.
+- View accurate sales reports.
+
+A seller must never be allowed to manage another seller's
+products, private messages, or orders.
+
+==================================================
+6. PRODUCT MANAGEMENT
+==================================================
+
+All published products must come from the real database.
+
+Each product should support:
+
+- Product ID.
+- Seller or store ID.
+- Product name.
+- Description.
+- Category.
+- Brand where applicable.
+- Price.
+- Optional sale price.
+- Currency.
+- Stock quantity.
+- Product images.
+- Product variants.
+- Product condition where applicable.
+- Publication status.
+- Creation date.
+- Last updated date.
+
+Implement:
+
+- Product creation.
+- Product editing.
+- Product deletion or archival.
+- Multiple product images.
+- Image upload validation.
+- Inventory updates.
+- Product search.
+- Category filtering.
+- Price filtering.
+- Sorting.
+- Product detail pages.
+
+Use persistent file storage for product images.
+
+Do not rely on temporary local files or unreliable external
+image URLs.
+
+Validate prices and inventory on the backend.
+
+Do not allow customers to purchase unpublished products.
+
+Preserve historical order information when a product is
+subsequently edited, unpublished, or archived.
+
+==================================================
+7. STORE FOLLOWING SYSTEM
+==================================================
+
+Implement a fully functional, persistent store-following
+system.
+
+Customers must be able to follow and unfollow stores.
+
+Create a store_followers database table containing at least:
+
+- Customer ID.
+- Store ID.
+- Follow timestamp.
+
+Enforce a unique constraint on the customer-store relationship.
+
+When a customer follows a store:
+
+1. Verify the authenticated customer.
+2. Validate that the store exists.
+3. Save the relationship in the database.
+4. Update the interface.
+5. Update the follower count using reliable database data.
+6. Optionally notify the store owner.
+
+When a customer opens a store they already follow, display
+the Following button.
+
+When they unfollow the store, remove or deactivate the
+relationship according to the database design.
+
+Implement:
+
+- Follow button.
+- Unfollow button.
+- Followed stores page.
+- Real follower counts.
+- Seller follower list, subject to privacy rules.
+- Products from followed stores.
+- Optional notifications about new products.
+
+The follow relationship must persist across sessions,
+refreshes, and devices.
+
+Do not implement following using frontend-only state.
+
+==================================================
+8. PRODUCT REVIEWS AND RATINGS
+==================================================
+
+Implement a genuine product review system.
+
+Customers must be able to:
+
+- Submit ratings.
+- Write reviews.
+- Upload review images where supported.
+- View published reviews.
+- Edit their own reviews according to policy.
+- Delete their reviews where appropriate.
+- Report abusive reviews.
+- Sort reviews.
+- Mark reviews as helpful.
+
+Where verified-purchase reviews are offered, verify eligibility
+against actual order records on the backend.
+
+Prevent duplicate reviews for the same eligible order item.
+
+Calculate product ratings from eligible published reviews.
+
+Do not hardcode ratings or review counts.
+
+Implement separate store reviews if supported by the product
+requirements.
+
+Allow sellers to respond to reviews without changing the
+original review.
+
+Implement moderation controls for administrators.
+
+==================================================
+9. BUYER-SELLER MESSAGING
+==================================================
+
+Implement a real buyer-seller messaging system.
+
+Customers must be able to:
+
+- Open a seller's store.
+- Click Message Seller.
+- Start or continue a conversation.
+- Send and receive text messages.
+- View conversation history.
+- See timestamps.
+- See unread-message counts.
+- Receive new-message notifications.
+- Access previous conversations after signing in again.
+
+Sellers must be able to:
+
+- View their authorized conversations.
+- Reply to customers.
+- See unread messages.
+- View the associated product where applicable.
+- Search conversations where practical.
+- Report abusive messages.
+
+Store conversations and messages in the database.
+
+Create appropriate conversation and membership relationships.
+
+Enforce server-side access controls so only authorized
+participants can access a conversation.
+
+Use realtime messaging where supported.
+
+If realtime delivery fails, messages must remain saved and
+become available when the recipient reconnects.
+
+Implement pagination for long conversations.
+
+Prevent unauthorized message modification or deletion.
+
+Support secure image attachments only if fully implemented.
+
+Do not expose private messages to unrelated users or sellers.
+
+==================================================
+10. REAL NOTIFICATION SYSTEM
+==================================================
+
+Create a complete notification center connected to real events.
+
+Notifications may be generated for:
+
+- New orders.
+- Payment confirmation.
+- Order status changes.
+- Shipment updates.
+- Delivery updates.
+- New messages.
+- New store followers.
+- New products from followed stores.
+- New product reviews.
+- Refund updates.
+- Return requests.
+- Security events.
+- Relevant account changes.
+
+Create persistent notification records with:
+
+- Notification ID.
+- Recipient ID.
+- Notification type.
+- Title.
+- Message.
+- Related resource ID.
+- Creation timestamp.
+- Read status.
+- Read timestamp.
+
+Implement:
+
+- Notification page.
+- Unread count.
+- Mark as read.
+- Mark all as read.
+- Open related order, product, store, or conversation.
+- Notification history.
+- Optional push notifications.
+- Notification preferences.
+
+Notifications must be created from actual backend events.
+
+Do not generate fake notifications to make the interface
+look populated.
+
+Save notifications in the database before attempting
+external push delivery.
+
+Implement reliable delivery retries where appropriate.
+
+Prevent duplicate notifications when an event is retried.
+
+If push notifications require external credentials, provide
+a clear configuration guide.
+
+A failed push notification must not erase the saved
+in-app notification.
+
+==================================================
+11. SHOPPING CART AND WISHLIST
+==================================================
+
+Implement a real shopping cart.
+
+Customers must be able to:
+
+- Add products.
+- Remove products.
+- Change quantities.
+- View subtotals.
+- View the cart total.
+- Save their cart to their account.
+- Retrieve their cart on another device.
+
+Validate product availability and prices on the backend.
+
+Do not trust prices submitted by the frontend.
+
+Revalidate stock and pricing during checkout.
+
+Handle inventory conflicts safely.
+
+If a product is unavailable, clearly explain the issue.
+
+Implement a separate wishlist.
+
+Customers must be able to:
+
+- Save products.
+- Remove saved products.
+- View their wishlist.
+- Move eligible products to the cart.
+- See current prices and availability.
+
+Persist both features using the authenticated account.
+
+==================================================
+12. ORDERS AND ORDER MANAGEMENT
+==================================================
+
+Implement a real order system.
+
+Customers must be able to:
+
+- Check out.
+- Select a delivery address.
+- Review their purchase.
+- See the final price.
+- Place an order.
+- View order history.
+- View order details.
+- Track order status.
+- Request cancellation when eligible.
+- Request returns when eligible.
+- View refund status.
+
+Create proper order and order-item records.
+
+Store the purchase price, quantity, currency, and relevant
+product details as historical order information.
+
+Implement appropriate order statuses, including:
+
+- Pending payment.
+- Paid.
+- Processing.
+- Ready for shipment.
+- Shipped.
+- Delivered.
+- Completed.
+- Cancelled.
+- Refund pending.
+- Refunded.
+
+Use only statuses that fit the actual workflow.
+
+Validate every status transition on the backend.
+
+Implement a parent checkout/order record and seller-specific
+fulfilment records where needed for multi-vendor purchases.
+
+Prevent sellers from accessing or modifying other sellers'
+private order information.
+
+Use database transactions or equivalent reliable mechanisms
+for order creation and inventory reservation.
+
+Prevent duplicate order creation during retries.
+
+==================================================
+13. PAYSTACK PAYMENT INTEGRATION
+==================================================
+
+Prepare a secure Paystack integration.
+
+Do not simulate successful payments.
+
+Use the official Paystack integration and documentation.
+
+Implement the appropriate payment workflow:
+
+1. Validate the customer's cart.
+2. Validate prices and inventory.
+3. Create the pending order.
+4. Initiate payment securely from the backend.
+5. Send the customer to the payment provider.
+6. Receive the provider's callback or webhook.
+7. Verify the webhook signature.
+8. Verify the payment reference and transaction details.
+9. Confirm the amount and currency.
+10. Confirm the payment is associated with the expected order.
+11. Process the payment idempotently.
+12. Update the payment and order records.
+13. Release or finalize reserved inventory appropriately.
+14. Create genuine confirmation notifications.
+
+Never trust a frontend success message as proof of payment.
+
+Never expose secret API keys in frontend code.
+
+Use environment variables and server-side secrets.
+
+Handle failed, pending, abandoned, duplicated, and reversed
+payments safely.
+
+Provide a clear setup guide for sandbox and live credentials.
+
+Do not activate live payments without the required credentials
+and testing.
+
+If Shopza will collect money for multiple sellers, design
+the commission, settlement, payout, refund, and reconciliation
+workflow carefully.
+
+Do not assume that a basic payment integration automatically
+solves marketplace payouts.
+
+==================================================
+14. SHIPPING, RETURNS, AND REFUNDS
+==================================================
+
+Implement shipping and returns workflows.
+
+Support:
+
+- Saved delivery addresses.
+- Shipping fee calculation.
+- Shipping status.
+- Tracking information.
+- Seller fulfilment.
+- Delivery confirmation.
+- Return requests.
+- Return reasons.
+- Return status.
+- Refund requests.
+- Refund processing records.
+- Customer notifications.
+
+Refunds must follow a properly authorized backend workflow.
+
+Never mark a refund as completed without verifying the
+actual payment provider result or applicable settlement process.
+
+Preserve an audit trail for important order and refund actions.
+
+==================================================
+15. ADMINISTRATOR DASHBOARD
+==================================================
+
+Build a protected administrator dashboard.
+
+Administrators should be able to manage:
+
+- Customers.
+- Sellers.
+- Seller verification.
+- Stores.
+- Products.
+- Categories.
+- Orders.
+- Payment records.
+- Refunds.
+- Reviews.
+- Reported messages.
+- Customer complaints.
+- Notifications.
+- Promotions.
+- Marketplace settings.
+- Audit logs.
+
+Use role-based access control.
+
+Separate administrator, moderator, support, seller, and
+customer permissions.
+
+Require appropriate authorization for sensitive operations.
+
+Record important administrative actions in audit logs.
+
+Never expose administrator credentials in frontend code.
+
+Do not allow users to assign themselves administrator roles.
+
+Dashboard statistics must be calculated from genuine records.
+
+If there are no orders, show zero orders.
+
+If there are no sales, show zero sales.
+
+Never invent business metrics.
+
+==================================================
+16. SEARCH AND DISCOVERY
+==================================================
+
+Implement functional product discovery.
+
+Support:
+
+- Product name search.
+- Category search.
+- Brand filtering.
+- Store search.
+- Price filtering.
+- Rating filtering.
+- Availability filtering.
+- Sorting by price.
+- Sorting by newest.
+- Relevant popularity sorting.
+- Products from followed stores.
+
+Search must use actual published products.
+
+Use pagination or incremental loading for large result sets.
+
+Do not load the entire marketplace into the browser.
+
+==================================================
+17. SECURITY AND DATA PROTECTION
+==================================================
+
+Security is mandatory.
+
+Implement:
+
+- Secure authentication.
+- Server-side authorization.
+- Database access policies.
+- Input validation.
+- Output encoding where appropriate.
+- Rate limiting for sensitive operations.
+- Secure session handling.
+- Protection against unauthorized record access.
+- Secure file uploads.
+- File type and size validation.
+- Payment webhook verification.
+- Secret management.
+- Audit logging.
+- Database backups.
+- Appropriate error handling.
+
+If Supabase is used, configure Row Level Security correctly
+for every exposed table that requires it.
+
+Do not expose service-role keys to the frontend.
+
+Do not allow customers to read private customer records.
+
+Do not allow sellers to access unrelated sellers' records.
+
+Do not allow clients to change payment statuses directly.
+
+Do not allow users to increase their permissions by editing
+frontend state or sending modified API requests.
+
+Do not return passwords, secret tokens, or private payment
+credentials in API responses.
+
+Avoid logging sensitive personal information unnecessarily.
+
+==================================================
+18. ERROR HANDLING AND RELIABILITY
+==================================================
+
+Implement proper loading, success, and failure states.
+
+Handle:
+
+- Network errors.
+- Server errors.
+- Authentication expiration.
+- Invalid forms.
+- Database constraint errors.
+- Payment failures.
+- Duplicate requests.
+- Insufficient inventory.
+- Missing products.
+- Failed image uploads.
+- Failed notifications.
+- Realtime disconnections.
+
+Do not silently swallow errors.
+
+Display understandable error messages to users.
+
+Record useful technical errors in server logs without
+exposing secrets or unnecessary personal information.
+
+Use transactions for operations that must succeed or fail
+together.
+
+Implement idempotency for payments and other critical
+operations.
+
+Make important asynchronous processes retryable.
+
+==================================================
+19. TESTING REQUIREMENTS
+==================================================
+
+Test the complete application.
+
+At minimum, test these scenarios:
+
+TEST 1:
+A customer registers, signs out, signs in again, and retrieves
+their existing account information.
+
+TEST 2:
+A seller creates a store and publishes a real product.
+
+TEST 3:
+Another customer sees the published product.
+
+TEST 4:
+A customer follows a store.
+
+TEST 5:
+The customer closes the application, signs in on another
+device or browser, and still sees that store as followed.
+
+TEST 6:
+The customer unfollows the store and the relationship is
+correctly updated.
+
+TEST 7:
+A customer adds a product to the cart and retrieves the cart
+after signing in again.
+
+TEST 8:
+A customer submits an eligible review and the review is
+stored and displayed correctly.
+
+TEST 9:
+A buyer sends a message to a seller and both authorized
+participants can retrieve the conversation.
+
+TEST 10:
+A new message creates a persistent notification.
+
+TEST 11:
+A real test payment is verified by the backend before the
+order is marked as paid.
+
+TEST 12:
+A failed payment does not produce a false successful order.
+
+TEST 13:
+A seller cannot access another seller's private orders.
+
+TEST 14:
+A customer cannot access another customer's private account
+data or conversations.
+
+TEST 15:
+Two customers attempting to purchase the last unit do not
+cause unintended overselling.
+
+TEST 16:
+A seller updates a product price and checkout correctly
+revalidates the amount.
+
+TEST 17:
+The administrator can moderate listings and manage users
+only through authorized operations.
+
+TEST 18:
+The application builds successfully and critical user flows
+work without console or server errors.
+
+Use automated tests where practical.
+
+Do not claim that cross-device synchronization, payments,
+messaging, or notifications have been tested unless the
+corresponding tests were actually performed.
+
+==================================================
+20. DEPLOYMENT AND CONFIGURATION
+==================================================
+
+Prepare the application for production deployment.
+
+Provide:
+
+- Clean project structure.
+- Updated dependency configuration.
+- Environment variable template.
+- Database schema or migrations.
+- Database setup instructions.
+- Authentication configuration.
+- File storage configuration.
+- Payment configuration.
+- Notification configuration.
+- Deployment instructions.
+- Build instructions.
+- Testing instructions.
+- Backup and recovery guidance.
+
+Never include real secrets in the project ZIP.
+
+Include an .env.example file with placeholder values only.
+
+Document all required external services and credentials.
+
+Ensure the frontend, backend, database, and payment integration
+use the correct production configuration.
+
+==================================================
+21. STRICT RULES
+==================================================
+
+DO NOT:
+
+- Build another demo.
+- Use fake products.
+- Generate fake customers.
+- Generate fake reviews.
+- Generate fake orders.
+- Generate fake sales statistics.
+- Create fake notifications.
+- Simulate successful payments.
+- Use hardcoded follower counts.
+- Use frontend-only authentication.
+- Store important business records only in local storage.
+- Leave important buttons nonfunctional.
+- Replace working code without justification.
+- expose secret keys.
+- Ignore database permissions.
+- Claim deployment succeeded without verifying it.
+- Claim the backend works without testing it.
+- Hide errors to make the interface appear successful.
+
+If a feature requires credentials, implement the integration
+safely and explain the remaining configuration.
+
+If a feature is not implemented, identify it honestly.
+
+==================================================
+22. FINAL DELIVERABLES
+==================================================
+
+When finished, provide:
+
+1. The updated Shopza source code.
+2. A downloadable ZIP of the complete project.
+3. Database schema and migration files.
+4. Backend implementation.
+5. Authentication configuration.
+6. Secure database access policies.
+7. Functional customer and seller workflows.
+8. Functional store-following system.
+9. Functional product reviews.
+10. Functional buyer-seller messaging.
+11. Persistent notifications.
+12. Shopping cart and wishlist.
+13. Order management.
+14. Paystack integration, configured as far as credentials allow.
+15. Administrator dashboard.
+16. Automated tests.
+17. Environment variable template.
+18. Setup and deployment guide.
+19. A list of features that were successfully tested.
+20. A list of remaining tasks, missing credentials, and limitations.
+
+Before delivering, run the production build and the available
+automated tests.
+
+Fix errors you discover.
+
+Do not deliver only a plan, screenshots, or frontend mockups.
+
+Deliver the actual updated code and explain how to run it.
+
+FINAL OBJECTIVE:
+
+Shopza must be a genuine, secure, database-driven e-commerce
+marketplace where customers and sellers can interact, products
+and orders persist, stores can be followed, messages are saved,
+reviews are genuine, notifications reflect actual events, and
+payments are verified securely.
+
+Build it professionally, preserve the existing project where
+possible, and be honest about anything that remains incomplete.

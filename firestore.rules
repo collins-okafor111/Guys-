@@ -18,6 +18,13 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email in ['collinsokafor931@gmail.com', 'aurastudio931@gmail.com'] ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
     // Default deny catch-all
     match /{document=**} {
       allow read, write: if false;
@@ -28,22 +35,28 @@ service cloud.firestore {
       allow read: if true;
     }
 
+    // Admins collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     // Users collection
     match /users/{userId} {
       allow get: if true;
       allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && request.auth.uid == userId;
-      allow delete: if false;
+      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
 
       // Cart subcollection
       match /cartItems/{cartItemId} {
-        allow read, write: if isSignedIn() && request.auth.uid == userId;
+        allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       }
 
       // Notifications subcollection
       match /notifications/{notificationId} {
-        allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
+        allow read, update, delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
         allow create: if isSignedIn();
       }
     }
@@ -51,62 +64,81 @@ service cloud.firestore {
     // Stores collection
     match /stores/{storeId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().ownerId == request.auth.uid;
-      allow update: if isSignedIn() && existing().ownerId == request.auth.uid;
-      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isSignedIn() && (incoming().ownerId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
     }
 
     // Products collection
     match /products/{productId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().sellerId == request.auth.uid;
-      allow update: if isSignedIn() && existing().sellerId == request.auth.uid;
-      allow delete: if isSignedIn() && existing().sellerId == request.auth.uid;
+      allow create: if isSignedIn() && (incoming().sellerId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
     }
 
     // Orders collection
     match /orders/{orderId} {
-      allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
-      allow list: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
-      allow create: if isSignedIn() && incoming().buyerId == request.auth.uid;
-      allow update: if isSignedIn() && (existing().buyerId == request.auth.uid || existing().sellerId == request.auth.uid);
-      allow delete: if false;
+      allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (incoming().buyerId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().buyerId == request.auth.uid || existing().sellerId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
     }
 
     // Follows collection
     match /follows/{followId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().followerId == request.auth.uid;
-      allow delete: if isSignedIn() && existing().followerId == request.auth.uid;
+      allow create: if isSignedIn() && (incoming().followerId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().followerId == request.auth.uid || isAdmin());
     }
 
     // Favorites collection
     match /favorites/{favoriteId} {
-      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow get, list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (incoming().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // Conversations collection
     match /conversations/{conversationId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow create: if isSignedIn() && request.auth.uid in incoming().participantIds;
-      allow update: if isSignedIn() && request.auth.uid in existing().participantIds;
-      allow delete: if false;
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participantIds || isAdmin());
+      allow create: if isSignedIn() && (request.auth.uid in incoming().participantIds || isAdmin());
+      allow update: if isSignedIn() && (request.auth.uid in existing().participantIds || isAdmin());
+      allow delete: if isAdmin();
 
       // Messages subcollection
       match /messages/{messageId} {
-        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-        allow create: if isSignedIn() && incoming().senderId == request.auth.uid && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-        allow update, delete: if false;
+        allow read: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds || isAdmin());
+        allow create: if isSignedIn() && (incoming().senderId == request.auth.uid && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds || isAdmin());
+        allow update, delete: if isAdmin();
       }
     }
 
     // Reviews collection
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn() && (incoming().userId == request.auth.uid || isAdmin());
+      allow update, delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Platform config collection
+    match /platformConfig/{configId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Store Deletions feedback & reasons audit collection
+    match /storeDeletions/{deletionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
   }
 }

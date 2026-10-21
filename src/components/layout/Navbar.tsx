@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { ShopzaLogo } from "./ShopzaLogo";
 
 interface NavbarProps {
@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenPagesDirectory,
 }) => {
   const { currentUser, logout } = useAuth();
-  const { getCart, getUnreadNotificationCount } = useConvex();
+  const { getCart, getUnreadNotificationCount } = useFirebase();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { Product } from "../../types";
 
 interface BuyerDashboardProps {
@@ -22,7 +22,7 @@ export const BuyerDashboard: React.FC<BuyerDashboardProps> = ({
   onOpenStore,
 }) => {
   const { currentUser, updateProfile } = useAuth();
-  const { listBuyerOrders, listFavorites, listFollowing, toggleFavorite, unfollowSeller } = useConvex();
+  const { listBuyerOrders, listFavorites, listFollowing, toggleFavorite, unfollowSeller } = useFirebase();
 
   const [activeTab, setActiveTab] = useState<"orders" | "favorites" | "following" | "profile">("orders");
 

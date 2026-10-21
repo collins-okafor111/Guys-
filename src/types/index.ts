@@ -53,6 +53,7 @@ export interface Product {
   storeName?: string;
   storeVerified?: boolean;
   storeSlug?: string;
+  likesCount?: number;
 }
 
 export interface Category {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { User, UserRole } from "../types";
-import { useConvex } from "./ConvexContext";
+import { useFirebase } from "./FirebaseContext";
 import {
   signInWithPopup,
   signOut as firebaseSignOut,
@@ -92,7 +92,7 @@ const STORAGE_KEY_SESSION_TOKEN = "shopza_session_token";
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { db } = useConvex();
+  const { db } = useFirebase();
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     return localStorage.getItem(STORAGE_KEY_AUTH_USER) || null;
   });
@@ -134,8 +134,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           role: existing?.role || "buyer",
           avatarUrl: existing?.avatarUrl || avatarUrl,
-          bio: existing?.bio,
-          phone: existing?.phone,
+          bio: existing?.bio || "",
+          phone: existing?.phone || "",
           emailVerified: true,
           authProvider: "google",
           createdAt: existing?.createdAt || now,
@@ -474,8 +474,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email,
               role: data.role || role,
               avatarUrl: data.avatarUrl || avatarUrl,
-              bio: data.bio,
-              phone: data.phone,
+              bio: data.bio || "",
+              phone: data.phone || "",
               emailVerified: true,
               authProvider: "google",
               createdAt: data.createdAt || now,
@@ -488,6 +488,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email,
               role,
               avatarUrl,
+              bio: "",
+              phone: "",
               emailVerified: true,
               authProvider: "google",
               createdAt: now,
@@ -501,6 +503,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email,
             role,
             avatarUrl,
+            bio: "",
+            phone: "",
             emailVerified: true,
             authProvider: "google",
             createdAt: now,

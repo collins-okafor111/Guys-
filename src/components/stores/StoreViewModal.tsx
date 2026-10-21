@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Store as StoreType, Product } from "../../types";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { ProductCard } from "../products/ProductCard";
 
 interface StoreViewModalProps {
@@ -31,11 +31,14 @@ export const StoreViewModal: React.FC<StoreViewModalProps> = ({
   onStartMessage,
 }) => {
   const { currentUser } = useAuth();
-  const { listProducts, getFollowStatus, followSeller, unfollowSeller } = useConvex();
+  const { listProducts, getFollowStatus, followSeller, unfollowSeller, getStoreFollowers } = useFirebase();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
 
   if (!store) return null;
+
+  const followersList = getStoreFollowers(store._id);
 
   const allProducts = listProducts({ storeId: store._id });
   const products = allProducts.filter((p) =>
@@ -177,11 +180,17 @@ export const StoreViewModal: React.FC<StoreViewModalProps> = ({
               </div>
 
               <div className="p-4 rounded-2xl bg-[#0a0c16] border border-purple-900/30 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-purple-400" /> Followers
+                <div
+                  onClick={() => setShowFollowersModal(true)}
+                  className="flex items-center justify-between text-slate-400 hover:text-white cursor-pointer group transition-colors"
+                  title="Click to view accounts following this store"
+                >
+                  <span className="flex items-center gap-1.5 group-hover:text-purple-300">
+                    <Users className="w-4 h-4 text-purple-400" /> Followers (View List)
                   </span>
-                  <span className="font-bold text-white">{followStatus.followerCount}</span>
+                  <span className="font-bold text-white group-hover:text-purple-300 underline">
+                    {Math.max(followStatus.followerCount, followersList.length)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-slate-400">
                   <span className="flex items-center gap-1.5">
@@ -251,6 +260,44 @@ export const StoreViewModal: React.FC<StoreViewModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Followers List Popup */}
+        {showFollowersModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+            <div className="relative w-full max-w-md bg-[#0d101d] rounded-3xl border border-purple-500/40 p-6 text-slate-100 text-xs space-y-4">
+              <button
+                onClick={() => setShowFollowersModal(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-[#15192e]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-bold text-white">Accounts Following {store.name}</h3>
+              </div>
+              {followersList.length === 0 ? (
+                <p className="text-slate-400 py-6 text-center">No followers yet. Be the first to follow this store!</p>
+              ) : (
+                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                  {followersList.map(({ user, follow }) => (
+                    <div key={follow._id} className="p-2.5 rounded-xl bg-[#12162a] border border-purple-900/40 flex items-center gap-2.5">
+                      <img
+                        src={user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-lg object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-white truncate">{user.name}</p>
+                        <p className="text-[10px] text-purple-300 truncate">{user.email}</p>
+                      </div>
+                      <span className="text-[9px] text-slate-500">{new Date(follow.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

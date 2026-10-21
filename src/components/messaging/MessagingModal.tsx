@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Send, MessageSquare, Mic, Store } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { useVoiceAssistant } from "../../hooks/useVoiceAssistant";
 import { Conversation, Message } from "../../types";
 
@@ -27,7 +27,7 @@ export const MessagingModal: React.FC<MessagingModalProps> = ({
     getStoreById,
     markMessagesAsRead,
     db,
-  } = useConvex();
+  } = useFirebase();
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");

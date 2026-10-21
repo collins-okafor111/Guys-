@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, ShieldCheck, CreditCard, ShoppingBag, MapPin, AlertCircle, ArrowRight } from "lucide-react";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { useAuth } from "../../context/AuthContext";
 
 interface CheckoutModalProps {
@@ -15,7 +15,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onOrderSuccess,
 }) => {
   const { currentUser } = useAuth();
-  const { getCart, createCheckoutOrder } = useConvex();
+  const { getCart, createCheckoutOrder } = useFirebase();
 
   const [paymentMethod, setPaymentMethod] = useState<"card" | "delivery">("card");
   const [address, setAddress] = useState({

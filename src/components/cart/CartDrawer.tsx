@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Truck } from "lucide-react";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { useAuth } from "../../context/AuthContext";
 
 interface CartDrawerProps {
@@ -17,7 +17,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onOpenAuth,
 }) => {
   const { currentUser } = useAuth();
-  const { getCart, updateCartQuantity, removeFromCart } = useConvex();
+  const { getCart, updateCartQuantity, removeFromCart } = useFirebase();
 
   if (!isOpen) return null;
 

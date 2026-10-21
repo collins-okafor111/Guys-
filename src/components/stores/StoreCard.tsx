@@ -2,7 +2,7 @@ import React from "react";
 import { Store, CheckCircle, Users, ArrowRight, UserCheck, UserPlus } from "lucide-react";
 import { Store as StoreType } from "../../types";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 
 interface StoreCardProps {
   store: StoreType;
@@ -12,7 +12,7 @@ interface StoreCardProps {
 
 export const StoreCard: React.FC<StoreCardProps> = ({ store, onSelect, onOpenAuth }) => {
   const { currentUser } = useAuth();
-  const { getFollowStatus, followSeller, unfollowSeller } = useConvex();
+  const { getFollowStatus, followSeller, unfollowSeller } = useFirebase();
 
   const followStatus = getFollowStatus(currentUser?._id, store.ownerId);
 

@@ -14,10 +14,17 @@ import {
   Truck,
   Eye,
   TrendingUp,
+  Upload,
+  ShieldCheck,
+  ShieldAlert,
+  X,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 import { Product, Order, OrderStatus } from "../../types";
+import { checkProductLegality, POPULAR_LEGAL_CATEGORIES } from "../../utils/legalCompliance";
+import { compressImageFile } from "../../utils/imageUpload";
 
 export const SellerDashboard: React.FC<{
   onSelectProduct: (p: Product) => void;
@@ -28,23 +35,28 @@ export const SellerDashboard: React.FC<{
     getStoreByOwner,
     createStore,
     updateStore,
+    deleteStore,
     listProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     listSellerOrders,
     updateOrderStatus,
+    getStoreFollowers,
     db,
-  } = useConvex();
+  } = useFirebase();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "orders" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "products" | "orders" | "followers" | "settings">("overview");
 
   // Create store form state
   const [storeName, setStoreName] = useState("");
   const [storeDesc, setStoreDesc] = useState("");
   const [storeCategories, setStoreCategories] = useState<string[]>(["Electronics"]);
+  const [storeCustomCategory, setStoreCustomCategory] = useState("Electronics");
   const [storeLogo, setStoreLogo] = useState("");
   const [storeBanner, setStoreBanner] = useState("");
+  const [isUploadingStoreLogo, setIsUploadingStoreLogo] = useState(false);
+  const [isUploadingStoreBanner, setIsUploadingStoreBanner] = useState(false);
   const [isCreatingStore, setIsCreatingStore] = useState(false);
   const [storeError, setStoreError] = useState<string | null>(null);
 
@@ -57,8 +69,16 @@ export const SellerDashboard: React.FC<{
   const [prodCategory, setProdCategory] = useState("Electronics");
   const [prodInventory, setProdInventory] = useState("10");
   const [prodImage, setProdImage] = useState("");
+  const [isUploadingDeviceImage, setIsUploadingDeviceImage] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [productError, setProductError] = useState<string | null>(null);
+
+  // Store Front deletion state
+  const [isDeleteStoreModalOpen, setIsDeleteStoreModalOpen] = useState(false);
+  const [storeDeleteReason, setStoreDeleteReason] = useState("Closing my business");
+  const [storeDeleteFeedback, setStoreDeleteFeedback] = useState("");
+  const [storeDeleteConfirmed, setStoreDeleteConfirmed] = useState(false);
+  const [isDeletingStoreFront, setIsDeletingStoreFront] = useState(false);
 
   // Order status update tracking
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -84,7 +104,38 @@ export const SellerDashboard: React.FC<{
 
   // Genuine statistics calculated strictly from actual records
   const totalRevenue = orders.reduce((sum, o) => sum + (o.subtotal - o.platformCommission), 0);
-  const storeFollowers = store ? store.followersCount : 0;
+  const followers = store ? getStoreFollowers(store._id) : [];
+  const storeFollowers = store ? Math.max(store.followersCount || 0, followers.length) : 0;
+
+  const handleStoreLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingStoreLogo(true);
+    setStoreError(null);
+    try {
+      const compressed = await compressImageFile(files[0], 600, 600, 0.85);
+      setStoreLogo(compressed);
+    } catch (err: any) {
+      setStoreError(err.message || "Failed to process logo image from device");
+    } finally {
+      setIsUploadingStoreLogo(false);
+    }
+  };
+
+  const handleStoreBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingStoreBanner(true);
+    setStoreError(null);
+    try {
+      const compressed = await compressImageFile(files[0], 1400, 600, 0.82);
+      setStoreBanner(compressed);
+    } catch (err: any) {
+      setStoreError(err.message || "Failed to process background image from device");
+    } finally {
+      setIsUploadingStoreBanner(false);
+    }
+  };
 
   const handleOpenStore = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +150,7 @@ export const SellerDashboard: React.FC<{
         ownerId: currentUser._id,
         name: storeName.trim(),
         description: storeDesc.trim(),
-        categories: storeCategories,
+        categories: [storeCustomCategory.trim() || "General Goods"],
         logoUrl: storeLogo.trim() || undefined,
         bannerUrl: storeBanner.trim() || undefined,
       });
@@ -146,6 +197,15 @@ export const SellerDashboard: React.FC<{
       if (isNaN(invNum) || invNum < 0) throw new Error("Inventory must be 0 or more");
       if (!prodTitle.trim()) throw new Error("Product title is required");
 
+      const legality = checkProductLegality({
+        title: prodTitle,
+        description: prodDesc,
+        category: prodCategory,
+      });
+      if (!legality.isLegal) {
+        throw new Error(`Cannot save: Prohibited item detected (${legality.category}). Only legal products are allowed on Shopza.`);
+      }
+
       const images = prodImage.trim()
         ? [prodImage.trim()]
         : ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800"];
@@ -178,6 +238,44 @@ export const SellerDashboard: React.FC<{
       setProductError(err.message || "Failed to save product");
     } finally {
       setIsSavingProduct(false);
+    }
+  };
+
+  const handleDeviceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingDeviceImage(true);
+    setProductError(null);
+    try {
+      const compressed = await compressImageFile(files[0], 1200, 1200, 0.82);
+      setProdImage(compressed);
+    } catch (err: any) {
+      setProductError(err.message || "Failed to process image from device");
+    } finally {
+      setIsUploadingDeviceImage(false);
+    }
+  };
+
+  const handleConfirmDeleteStoreFront = async () => {
+    if (!store) return;
+    if (!storeDeleteConfirmed) {
+      alert("Please acknowledge the confirmation checkbox.");
+      return;
+    }
+    setIsDeletingStoreFront(true);
+    try {
+      await deleteStore({
+        storeId: store._id,
+        ownerId: currentUser._id,
+        reason: storeDeleteReason,
+        feedback: storeDeleteFeedback.trim() || undefined,
+      });
+      setIsDeleteStoreModalOpen(false);
+      alert(`Store front "${store.name}" was permanently deleted and your cancellation reason was recorded in the database.`);
+    } catch (err: any) {
+      alert(err.message || "Failed to delete store front");
+    } finally {
+      setIsDeletingStoreFront(false);
     }
   };
 
@@ -261,46 +359,106 @@ export const SellerDashboard: React.FC<{
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Primary Product Category
+                  Primary Product Category (Type any category) *
                 </label>
-                <select
-                  value={storeCategories[0]}
-                  onChange={(e) => setStoreCategories([e.target.value])}
-                  className="w-full px-3.5 py-2.5 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white"
-                >
-                  {db.categories.map((c) => (
-                    <option key={c.slug} value={c.name} className="bg-[#12162a] text-white">
-                      {c.name}
-                    </option>
+                <input
+                  type="text"
+                  required
+                  value={storeCustomCategory}
+                  onChange={(e) => setStoreCustomCategory(e.target.value)}
+                  placeholder="e.g. Mechanical Keyboards, Organic Skincare, Artisan Ceramics..."
+                  className="w-full px-3.5 py-2.5 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
+                />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {POPULAR_LEGAL_CATEGORIES.slice(0, 6).map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setStoreCustomCategory(cat)}
+                      className="px-2 py-0.5 rounded-lg bg-[#1a1f38] text-[10px] text-purple-300 hover:text-white border border-purple-900/30"
+                    >
+                      + {cat}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Logo Image URL (Optional)
+              {/* Store Logo: Upload from Device */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-semibold text-slate-300">
+                  Store Logo (Upload from your device or enter URL)
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-purple-900/40 active:scale-95 flex-shrink-0">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{isUploadingStoreLogo ? "Uploading..." : "Upload Logo"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleStoreLogoUpload}
+                      className="hidden"
+                    />
                   </label>
                   <input
                     type="url"
                     value={storeLogo}
                     onChange={(e) => setStoreLogo(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2.5 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
+                    placeholder="Or paste https:// logo URL..."
+                    className="flex-1 px-3 py-2 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Banner Image URL (Optional)
+                {storeLogo && (
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-purple-500/40 bg-[#080a12] mt-2">
+                    <img src={storeLogo} alt="Store Logo Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setStoreLogo("")}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-rose-600 text-white hover:bg-rose-500"
+                      title="Remove logo"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Store Background / Banner Image: Upload from Device */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-semibold text-slate-300">
+                  Store Background Banner (Upload from your device or enter URL)
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-900/40 active:scale-95 flex-shrink-0">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{isUploadingStoreBanner ? "Uploading..." : "Upload Background"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleStoreBannerUpload}
+                      className="hidden"
+                    />
                   </label>
                   <input
                     type="url"
                     value={storeBanner}
                     onChange={(e) => setStoreBanner(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2.5 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
+                    placeholder="Or paste https:// background image URL..."
+                    className="flex-1 px-3 py-2 text-xs bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
                   />
                 </div>
+                {storeBanner && (
+                  <div className="relative w-full h-24 rounded-xl overflow-hidden border border-blue-500/40 bg-[#080a12] mt-2">
+                    <img src={storeBanner} alt="Store Background Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setStoreBanner("")}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-rose-600 text-white hover:bg-rose-500"
+                      title="Remove background image"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button
@@ -374,6 +532,15 @@ export const SellerDashboard: React.FC<{
               <Plus className="w-4 h-4" />
               <span>Add Product</span>
             </button>
+
+            <button
+              onClick={() => setIsDeleteStoreModalOpen(true)}
+              className="px-3 py-2 text-xs font-bold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+              title="Delete this store front and account"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Delete Store</span>
+            </button>
           </div>
         </div>
 
@@ -383,6 +550,7 @@ export const SellerDashboard: React.FC<{
             { id: "overview", label: "Overview & Analytics", icon: TrendingUp },
             { id: "products", label: `Products (${products.length})`, icon: Package },
             { id: "orders", label: `Incoming Orders (${orders.length})`, icon: ShoppingBag },
+            { id: "followers", label: `Followers (${followers.length})`, icon: Users },
             { id: "settings", label: "Store Settings", icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -723,10 +891,59 @@ export const SellerDashboard: React.FC<{
           </div>
         )}
 
-        {/* TAB 4: STORE SETTINGS */}
+        {/* TAB 4: FOLLOWERS */}
+        {activeTab === "followers" && (
+          <div className="bg-[#0d101d] rounded-2xl border border-purple-900/30 p-6 shadow-xl space-y-4">
+            <div className="border-b border-purple-900/30 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-purple-400" />
+                  <span>Store Followers ({followers.length})</span>
+                </h3>
+                <p className="text-xs text-slate-400">Live accounts and shoppers following {store.name}</p>
+              </div>
+            </div>
+
+            {followers.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs space-y-2">
+                <Users className="w-10 h-10 text-slate-600 mx-auto" />
+                <p className="font-semibold text-slate-300">No followers yet</p>
+                <p className="text-[11px] text-slate-500">
+                  When shoppers visit your store front and follow you, their names and profiles appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {followers.map(({ user, follow }) => (
+                  <div
+                    key={follow._id}
+                    className="p-3.5 rounded-2xl bg-[#12162a] border border-purple-900/40 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <img
+                        src={user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+                        alt={user.name}
+                        className="w-10 h-10 rounded-xl object-cover border border-purple-800/40 flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-bold text-white truncate">{user.name}</p>
+                        <p className="text-[10px] text-purple-300 font-mono truncate">{user.email}</p>
+                        <p className="text-[9px] text-slate-500">
+                          Followed on {new Date(follow.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 5: STORE SETTINGS */}
         {activeTab === "settings" && (
-          <div className="bg-[#0d101d] rounded-2xl border border-purple-900/30 p-6 shadow-xl max-w-2xl">
-            <h3 className="text-base font-bold text-white mb-4">Store Configuration</h3>
+          <div className="bg-[#0d101d] rounded-2xl border border-purple-900/30 p-6 shadow-xl max-w-2xl space-y-6">
+            <h3 className="text-base font-bold text-white">Store Configuration</h3>
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -738,7 +955,7 @@ export const SellerDashboard: React.FC<{
                     description: store.description,
                     status: store.status === "open" ? "closed" : "open",
                   });
-                  alert("Store status updated");
+                  alert("Store status updated in Cloud Firestore");
                 } catch (err: any) {
                   alert(err.message || "Failed to update store");
                 }
@@ -751,7 +968,7 @@ export const SellerDashboard: React.FC<{
                   type="text"
                   disabled
                   value={store.name}
-                  className="w-full px-3 py-2 bg-[#080a12] border border-purple-900/30 rounded-xl text-slate-500 cursor-not-allowed"
+                  className="w-full px-3 py-2 bg-[#080a12] border border-purple-900/30 rounded-xl text-slate-400 cursor-not-allowed"
                 />
               </div>
 
@@ -777,11 +994,27 @@ export const SellerDashboard: React.FC<{
                 >
                   <span>Toggle Status: Currently {store.status.toUpperCase()}</span>
                 </button>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  When closed, your store remains discoverable in search, but customers cannot place new orders until re-opened.
-                </p>
               </div>
             </form>
+
+            {/* Danger Zone: Delete Store Front */}
+            <div className="pt-6 border-t border-rose-950/70 space-y-2">
+              <h4 className="text-sm font-bold text-rose-300 flex items-center gap-2">
+                <Trash2 className="w-4 h-4 text-rose-400" />
+                <span>Delete Store Front & Seller Account</span>
+              </h4>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Permanently delete this storefront, unlist all your products ({products.length} items), and record your offboarding reason in the database.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsDeleteStoreModalOpen(true)}
+                className="mt-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-md shadow-rose-950/60 transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Store Front</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -800,7 +1033,7 @@ export const SellerDashboard: React.FC<{
                 {editingProduct ? "Edit Product" : "Add New Product"}
               </h3>
               <p className="text-xs text-slate-400 mb-4">
-                Enter product details to publish to {store.name}.
+                Publish genuine legal products to {store.name}.
               </p>
 
               {productError && (
@@ -808,6 +1041,34 @@ export const SellerDashboard: React.FC<{
                   {productError}
                 </div>
               )}
+
+              {/* Real-time Illegal Goods Detection: "remember we are selling all legal kind of things if it is not legal the app should automatically detect it" */}
+              {(() => {
+                const legality = checkProductLegality({
+                  title: prodTitle,
+                  description: prodDesc,
+                  category: prodCategory,
+                });
+                if (!legality.isLegal) {
+                  return (
+                    <div className="mb-4 p-3 rounded-xl bg-rose-950/60 border border-rose-600 text-rose-200 text-xs flex items-start gap-2.5 animate-pulse">
+                      <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-white">Prohibited: {legality.category}</span>
+                        <p className="text-[11px] text-rose-300 mt-0.5">{legality.reason}</p>
+                      </div>
+                    </div>
+                  );
+                } else if (prodTitle.trim()) {
+                  return (
+                    <div className="mb-4 p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 text-xs flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Legal merchandise verified for listing</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <form onSubmit={handleSaveProduct} className="space-y-3.5 text-xs">
                 <div>
@@ -861,30 +1122,73 @@ export const SellerDashboard: React.FC<{
                   </div>
                 </div>
 
+                {/* Flexible Custom Category: "user can just type the category of the product" */}
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Category</label>
-                  <select
+                  <label className="block font-semibold text-slate-300 mb-1">
+                    Category (Type any custom category) *
+                  </label>
+                  <input
+                    type="text"
+                    required
                     value={prodCategory}
                     onChange={(e) => setProdCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white"
-                  >
-                    {db.categories.map((c) => (
-                      <option key={c.slug} value={c.name} className="bg-[#12162a] text-white">
-                        {c.name}
-                      </option>
+                    placeholder="Type custom category..."
+                    className="w-full px-3 py-2 bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 text-white placeholder-slate-500"
+                  />
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {POPULAR_LEGAL_CATEGORIES.slice(0, 5).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setProdCategory(cat)}
+                        className="px-2 py-0.5 rounded text-[10px] bg-[#1a1f38] text-purple-300 hover:text-white border border-purple-900/30"
+                      >
+                        + {cat}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={prodImage}
-                    onChange={(e) => setProdImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3 py-2 bg-[#12162a] border border-purple-900/40 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-slate-500"
-                  />
+                {/* Device Image Upload: "put a button that you can use to upload product image from your devices" */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="block font-semibold text-slate-300">
+                    Product Image (Upload from device or enter URL)
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <label className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-purple-900/40 active:scale-95">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{isUploadingDeviceImage ? "Uploading..." : "Upload from Device"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleDeviceImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <input
+                      type="url"
+                      value={prodImage}
+                      onChange={(e) => setProdImage(e.target.value)}
+                      placeholder="Or paste https:// image URL..."
+                      className="flex-1 px-3 py-2 bg-[#12162a] border border-purple-900/40 rounded-xl text-white placeholder-slate-500 text-xs"
+                    />
+                  </div>
+
+                  {prodImage && (
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-purple-500/40 bg-[#080a12] mt-2">
+                      <img src={prodImage} alt="preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setProdImage("")}
+                        className="absolute top-1 right-1 p-0.5 rounded-full bg-rose-600 text-white"
+                        title="Remove image"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-2 flex justify-end gap-2">
@@ -897,13 +1201,116 @@ export const SellerDashboard: React.FC<{
                   </button>
                   <button
                     type="submit"
-                    disabled={isSavingProduct}
+                    disabled={isSavingProduct || !checkProductLegality({ title: prodTitle, description: prodDesc, category: prodCategory }).isLegal}
                     className="px-5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md shadow-purple-900/40 disabled:opacity-50"
                   >
                     {isSavingProduct ? "Saving..." : editingProduct ? "Update Product" : "Publish to Store"}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE STOREFRONT OFFBOARDING MODAL */}
+        {isDeleteStoreModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+            <div className="relative w-full max-w-lg bg-[#0d101d] rounded-2xl shadow-2xl border border-rose-500/40 p-6 text-slate-100 text-xs space-y-4">
+              <button
+                onClick={() => setIsDeleteStoreModalOpen(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-[#15192e]"
+              >
+                ✕
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-950/70 border border-rose-800/50 flex items-center justify-center text-rose-400 flex-shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Delete Store Front</h3>
+                  <p className="text-[11px] text-slate-400">
+                    Offboarding process for "{store.name}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-900/40 text-rose-300 leading-relaxed text-[11px]">
+                ⚠️ <strong>Warning:</strong> Deleting your storefront will permanently delete your store, unlist all your products ({products.length} items), and record your offboarding reason in the database.
+              </div>
+
+              <div className="space-y-2">
+                <label className="block font-bold text-white">
+                  Why do you want to delete this account / storefront? *
+                </label>
+                {[
+                  "Closing my business",
+                  "Switching to another eCommerce platform",
+                  "Not getting enough sales",
+                  "Platform fee or commission concerns",
+                  "Temporary break / hiatus",
+                  "Personal reasons",
+                  "Other feedback",
+                ].map((reason) => (
+                  <label
+                    key={reason}
+                    className="flex items-center gap-2.5 p-2 rounded-xl bg-[#12162a] border border-purple-900/30 hover:border-purple-500/40 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="compStoreDeleteReason"
+                      value={reason}
+                      checked={storeDeleteReason === reason}
+                      onChange={(e) => setStoreDeleteReason(e.target.value)}
+                      className="accent-rose-500"
+                    />
+                    <span className="text-slate-200">{reason}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div>
+                <label className="block font-bold text-white mb-1">
+                  Additional Comments (Stored in database)
+                </label>
+                <textarea
+                  rows={2}
+                  value={storeDeleteFeedback}
+                  onChange={(e) => setStoreDeleteFeedback(e.target.value)}
+                  placeholder="Share any feedback regarding your decision..."
+                  className="w-full px-3 py-2 bg-[#12162a] border border-purple-900/40 rounded-xl text-white placeholder-slate-500"
+                />
+              </div>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={storeDeleteConfirmed}
+                  onChange={(e) => setStoreDeleteConfirmed(e.target.checked)}
+                  className="mt-0.5 accent-rose-500"
+                />
+                <span className="text-[11px] text-slate-300">
+                  I understand this will permanently delete my storefront and all associated products from Cloud Firestore.
+                </span>
+              </label>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteStoreModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!storeDeleteConfirmed || isDeletingStoreFront}
+                  onClick={handleConfirmDeleteStoreFront}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold disabled:opacity-40"
+                >
+                  {isDeletingStoreFront ? "Deleting..." : "Permanently Delete"}
+                </button>
+              </div>
             </div>
           </div>
         )}

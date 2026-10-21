@@ -2,7 +2,7 @@ import React from "react";
 import { Heart, ShoppingBag, Star, CheckCircle, Store, AlertCircle } from "lucide-react";
 import { Product } from "../../types";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 
 interface ProductCardProps {
   product: Product & { storeName?: string; storeVerified?: boolean; storeSlug?: string };
@@ -18,7 +18,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onOpenStore,
 }) => {
   const { currentUser } = useAuth();
-  const { getFavoriteStatus, toggleFavorite, addToCart } = useConvex();
+  const { getFavoriteStatus, toggleFavorite, addToCart } = useFirebase();
 
   const isFavorited = currentUser
     ? getFavoriteStatus(currentUser._id, product._id).isFavorited
@@ -78,17 +78,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           loading="lazy"
         />
 
-        {/* Favorite Button */}
+        {/* Favorite / Like Button with Live Count */}
         <button
           onClick={handleToggleFavorite}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${
+          className={`absolute top-3 right-3 px-2.5 py-1.5 rounded-full backdrop-blur-md transition-all flex items-center gap-1.5 active:scale-110 shadow-lg ${
             isFavorited
-              ? "bg-rose-600 text-white shadow-md shadow-rose-900/40"
-              : "bg-[#12162a]/80 hover:bg-[#181d38] text-slate-300 hover:text-rose-400 border border-purple-900/40"
+              ? "bg-rose-600/95 text-white shadow-rose-900/50 ring-2 ring-rose-400/40"
+              : "bg-[#12162a]/85 hover:bg-[#1a1f3c] text-slate-300 hover:text-rose-400 border border-purple-900/50"
           }`}
-          title={isFavorited ? "Saved in favorites" : "Save to favorites"}
+          title={isFavorited ? "Liked • Click to unlike" : "Click to like this product"}
         >
-          <Heart className={`w-4 h-4 ${isFavorited ? "fill-white" : ""}`} />
+          <Heart className={`w-3.5 h-3.5 ${isFavorited ? "fill-white text-white" : ""}`} />
+          <span className="text-[11px] font-extrabold tracking-tight">
+            {product.likesCount !== undefined ? product.likesCount : (isFavorited ? 1 : 0)}
+          </span>
         </button>
 
         {/* Warnings / Stock Badge */}

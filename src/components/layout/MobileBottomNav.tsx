@@ -1,7 +1,7 @@
 import React from "react";
 import { ShoppingBag, Store, Mic, ShoppingCart, User, Layers } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 
 interface MobileBottomNavProps {
   currentView: string;
@@ -21,7 +21,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenPagesDirectory,
 }) => {
   const { currentUser } = useAuth();
-  const { getCart } = useConvex();
+  const { getCart } = useFirebase();
 
   const cart = currentUser ? getCart(currentUser._id) : { itemCount: 0 };
 

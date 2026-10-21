@@ -23,6 +23,7 @@ import {
 import { Product, Store as StoreType, Order, User as UserType } from "../types";
 import { ProductCard } from "../components/products/ProductCard";
 import { StoreCard } from "../components/stores/StoreCard";
+import { useFirebase } from "../context/FirebaseContext";
 
 interface BuyerHubProps {
   products: Product[];
@@ -146,7 +147,7 @@ export const BuyerDashboardPage: React.FC<BuyerHubProps> = ({
               >
                 <div>
                   <span className="font-mono text-xs font-bold text-white">Order #{ord.orderNumber}</span>
-                  <p className="text-xs text-slate-400 mt-0.5">{ord.items.length} items • ${ord.totalAmount.toFixed(2)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{(ord.items || []).length} items • ${ord.total.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/70 text-emerald-400 border border-emerald-800/40 uppercase">
@@ -209,7 +210,7 @@ export const OrderTrackingPage: React.FC<BuyerHubProps> = ({ orders, onNavigate 
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-950/70 text-blue-300 border border-blue-800/40 uppercase">
                     {ord.status}
                   </span>
-                  <span className="font-black text-white text-sm">${ord.totalAmount.toFixed(2)}</span>
+                  <span className="font-black text-white text-sm">${ord.total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -233,7 +234,7 @@ export const OrderTrackingPage: React.FC<BuyerHubProps> = ({ orders, onNavigate 
 
               {/* Items List */}
               <div className="space-y-2">
-                {ord.items.map((it, idx) => (
+                {(ord.items || []).map((it, idx) => (
                   <div key={idx} className="flex items-center justify-between text-xs text-slate-300">
                     <div className="flex items-center gap-2">
                       <img src={it.productImage} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -291,7 +292,7 @@ export const ReturnsCenterPage: React.FC<BuyerHubProps> = ({ orders }) => {
             <select className="w-full px-3 py-2 bg-[#070914] border border-blue-900/40 rounded-xl text-white">
               {orders.map((o) => (
                 <option key={o._id} value={o._id}>
-                  Order #{o.orderNumber} — ${o.totalAmount.toFixed(2)}
+                  Order #{o.orderNumber} — ${o.total.toFixed(2)}
                 </option>
               ))}
               <option value="demo">Order #SPZ-99412 — $129.00</option>
@@ -367,34 +368,119 @@ export const WishlistPage: React.FC<BuyerHubProps> = ({
   );
 };
 
-// 30. Followed Stores & Activity Feed (Page 30)
+// 30. Followed Stores & Accounts (Page 30)
 export const FollowedStoresPage: React.FC<BuyerHubProps> = ({
-  stores,
+  currentUser,
   onOpenStore,
   onNavigate,
+  onOpenAuth,
 }) => {
+  const { listFollowing, unfollowSeller } = useFirebase();
+
+  if (!currentUser) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4">
+        <Users className="w-12 h-12 text-purple-400 mx-auto" />
+        <h2 className="text-xl font-bold text-white">Sign In to View Followed Stores</h2>
+        <p className="text-xs text-slate-400">
+          Sign in to see updates and accounts you follow on the marketplace.
+        </p>
+        <button
+          onClick={() => onOpenAuth("login")}
+          className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl text-xs font-bold"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
+
+  const followingList = listFollowing(currentUser._id);
+
   return (
     <div className="space-y-6 animate-fadeIn max-w-5xl mx-auto">
-      <div className="border-b border-blue-900/25 pb-4">
+      <div className="border-b border-purple-900/30 pb-4">
         <h1 className="text-2xl font-black text-white flex items-center gap-2">
-          <Users className="w-6 h-6 text-blue-400" />
-          <span>Followed Stores & Activity Feed</span>
+          <Users className="w-6 h-6 text-purple-400" />
+          <span>Followed Stores & Merchants ({followingList.length})</span>
         </h1>
         <p className="text-xs text-slate-400">
-          Updates, new product drops, and announcements from your favorite independent merchants
+          Live list of merchant accounts and stores you follow on Shopza
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stores.map((st) => (
-          <StoreCard
-            key={st._id}
-            store={st}
-            onViewStore={() => onOpenStore(st.slug)}
-            onFollowToggle={() => {}}
-          />
-        ))}
-      </div>
+      {followingList.length === 0 ? (
+        <div className="p-12 rounded-3xl bg-[#0F142A] border border-purple-900/30 text-center space-y-3">
+          <Users className="w-12 h-12 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-white">No Followed Stores Yet</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            Browse through merchant storefronts and click "Follow Store" to stay in touch with your favorite creators.
+          </p>
+          <button
+            onClick={() => onNavigate("stores_directory")}
+            className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-900/40"
+          >
+            Explore Merchant Directory
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {followingList.map(({ followId, seller, store, followedAt }) => (
+            <div
+              key={followId}
+              className="p-5 rounded-2xl bg-[#0F142A] border border-purple-900/30 hover:border-purple-500/50 shadow-xl flex flex-col justify-between gap-4 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <img
+                  src={
+                    store?.logoUrl ||
+                    seller?.avatarUrl ||
+                    "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=120"
+                  }
+                  alt={store?.name || seller?.name || "Merchant"}
+                  className="w-12 h-12 rounded-xl object-cover bg-[#070914] border border-purple-800/40"
+                />
+                <div className="min-w-0">
+                  <h4 className="font-bold text-white text-sm truncate">
+                    {store?.name || seller?.name || "Merchant"}
+                  </h4>
+                  <p className="text-[11px] text-purple-300 truncate">
+                    {store ? `store/${store.slug}` : seller?.email}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    Following since {new Date(followedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-purple-900/30">
+                {store && (
+                  <button
+                    onClick={() => onOpenStore(store.slug)}
+                    className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold text-center shadow-md shadow-purple-900/30"
+                  >
+                    Visit Store
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    if (seller) {
+                      await unfollowSeller({
+                        followerId: currentUser._id,
+                        sellerId: seller._id,
+                        storeId: store?._id,
+                      });
+                    }
+                  }}
+                  className="py-2 px-3 rounded-xl bg-[#141A36] hover:bg-rose-950/40 hover:text-rose-300 text-slate-400 text-xs font-semibold border border-purple-900/40 transition-colors"
+                >
+                  Unfollow
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

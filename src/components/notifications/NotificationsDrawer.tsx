@@ -1,7 +1,7 @@
 import React from "react";
 import { X, Bell, ShoppingBag, UserPlus, MessageSquare, Info } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useConvex } from "../../context/ConvexContext";
+import { useFirebase } from "../../context/FirebaseContext";
 
 interface NotificationsDrawerProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   onNavigate,
 }) => {
   const { currentUser } = useAuth();
-  const { listNotifications, markNotificationRead, markAllNotificationsRead } = useConvex();
+  const { listNotifications, markNotificationRead, markAllNotificationsRead } = useFirebase();
 
   if (!isOpen || !currentUser) return null;
 

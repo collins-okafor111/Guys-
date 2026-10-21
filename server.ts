@@ -826,6 +826,92 @@ app.post("/api/auth/reset-password", async (req, res) => {
   }
 });
 
+// 9. API: Paystack Payment Gateway Initialize
+app.post("/api/payments/paystack/initialize", async (req, res) => {
+  try {
+    const { email, amount, orderId, metadata = {} } = req.body;
+    if (!email || !amount || !orderId) {
+      return res.status(400).json({ error: "Email, amount, and orderId are required." });
+    }
+
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+    const reference = `SPZ_${Date.now()}_${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+
+    // If real secret key provided, call official Paystack API
+    if (paystackSecret && paystackSecret.startsWith("sk_")) {
+      const response = await fetch("https://api.paystack.co/transaction/initialize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${paystackSecret}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          amount: Math.round(Number(amount) * 100),
+          reference,
+          metadata: {
+            ...metadata,
+            orderId,
+            platform: "Shopza Marketplace",
+          },
+        }),
+      });
+
+      const data = await response.json();
+      return res.json({
+        success: data.status,
+        reference,
+        authorization_url: data.data?.authorization_url,
+        access_code: data.data?.access_code,
+      });
+    }
+
+    // Default Sandbox / Mock Mode
+    return res.json({
+      success: true,
+      reference,
+      message: "Paystack test checkout reference created.",
+      isSandbox: true,
+    });
+  } catch (err: any) {
+    console.error("Paystack initialize error:", err);
+    return res.status(500).json({ error: "Failed to initialize Paystack payment." });
+  }
+});
+
+// 10. API: Paystack Payment Verify
+app.get("/api/payments/paystack/verify/:reference", async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+
+    if (paystackSecret && paystackSecret.startsWith("sk_")) {
+      const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+        headers: {
+          Authorization: `Bearer ${paystackSecret}`,
+        },
+      });
+      const data = await response.json();
+      return res.json(data);
+    }
+
+    // Simulated sandbox verification
+    return res.json({
+      status: "success",
+      data: {
+        reference,
+        status: "success",
+        gateway_response: "Approved",
+        channel: "card",
+        paid_at: new Date().toISOString(),
+      },
+    });
+  } catch (err: any) {
+    console.error("Paystack verify error:", err);
+    return res.status(500).json({ error: "Failed to verify transaction." });
+  }
+});
+
 // Configure Vite middleware in Dev or Static serving in Production
 async function startServer() {
   const isProd = process.env.NODE_ENV === "production";

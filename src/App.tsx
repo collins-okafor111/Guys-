@@ -6,7 +6,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
-import { ConvexProvider, useConvex } from "./context/ConvexContext";
+import { FirebaseProvider, useFirebase } from "./context/FirebaseContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
@@ -39,7 +39,7 @@ function MainApp() {
     db,
     getStoreBySlug,
     getStoreById,
-  } = useConvex();
+  } = useFirebase();
 
   // Navigation: Active Page out of the 50 Pages
   const [currentPageId, setCurrentPageId] = useState<string>("marketplace");
@@ -65,6 +65,7 @@ function MainApp() {
   // Data from Context
   const products = listProducts({ search: searchQuery });
   const stores = listStores({ search: searchQuery });
+  const orders = currentUser ? listBuyerOrders(currentUser._id) : (db.orders || []);
   const rawCart = currentUser ? getCart(currentUser._id) : null;
   const cart = {
     items: rawCart?.items || [],
@@ -419,10 +420,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <ConvexProvider>
+    <FirebaseProvider>
       <AuthProvider>
         <MainApp />
       </AuthProvider>
-    </ConvexProvider>
+    </FirebaseProvider>
   );
 }
