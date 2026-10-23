@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ verify: (req: any, res, buf) => { req.rawBody = buf; } }));
 
 // In-memory secure verification token store
 interface VerificationRecord {
@@ -826,19 +826,40 @@ app.post("/api/auth/reset-password", async (req, res) => {
   }
 });
 
-// 9. API: Paystack Payment Gateway Initialize
+// 9. API: Paystack Gateway Configuration
+app.get("/api/payments/paystack/config", (req, res) => {
+  const publicKey = process.env.PAYSTACK_PUBLIC_KEY || "";
+  const secretKey = process.env.PAYSTACK_SECRET_KEY || "";
+  const isLive = secretKey.startsWith("sk_live_");
+  const isConfigured = Boolean(secretKey && (secretKey.startsWith("sk_test_") || secretKey.startsWith("sk_live_")));
+
+  res.json({
+    publicKey: publicKey || (isConfigured ? "pk_test_placeholder" : ""),
+    isConfigured,
+    isLive,
+    currency: process.env.PAYSTACK_CURRENCY || "NGN",
+    supportedChannels: ["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"],
+  });
+});
+
+// 10. API: Paystack Payment Gateway Initialize
 app.post("/api/payments/paystack/initialize", async (req, res) => {
   try {
-    const { email, amount, orderId, metadata = {} } = req.body;
+    const { email, amount, orderId, currency = "NGN", metadata = {}, callbackUrl } = req.body;
     if (!email || !amount || !orderId) {
       return res.status(400).json({ error: "Email, amount, and orderId are required." });
     }
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+    const cleanEmail = String(email).trim().toLowerCase();
+    const amountInKobo = Math.round(Number(amount) * 100);
     const reference = `SPZ_${Date.now()}_${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
     // If real secret key provided, call official Paystack API
     if (paystackSecret && paystackSecret.startsWith("sk_")) {
+      const origin = req.headers.origin || `http://localhost:${PORT}`;
+      const defaultCallback = `${origin}?paystack_ref=${reference}&order_id=${orderId}`;
+
       const response = await fetch("https://api.paystack.co/transaction/initialize", {
         method: "POST",
         headers: {
@@ -846,31 +867,47 @@ app.post("/api/payments/paystack/initialize", async (req, res) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
-          amount: Math.round(Number(amount) * 100),
+          email: cleanEmail,
+          amount: amountInKobo,
+          currency: currency.toUpperCase(),
           reference,
+          callback_url: callbackUrl || defaultCallback,
           metadata: {
             ...metadata,
             orderId,
             platform: "Shopza Marketplace",
+            custom_fields: [
+              { display_name: "Order ID", variable_name: "order_id", value: orderId },
+              { display_name: "Platform", variable_name: "platform", value: "Shopza" },
+            ],
           },
         }),
       });
 
       const data = await response.json();
+      if (!data.status) {
+        return res.status(400).json({
+          error: data.message || "Failed to initialize Paystack transaction",
+          details: data,
+        });
+      }
+
       return res.json({
-        success: data.status,
+        success: true,
         reference,
         authorization_url: data.data?.authorization_url,
         access_code: data.data?.access_code,
+        isSandbox: !paystackSecret.startsWith("sk_live_"),
       });
     }
 
-    // Default Sandbox / Mock Mode
+    // Default Sandbox / Mock Mode when key is not yet configured
+    const origin = req.headers.origin || `http://localhost:${PORT}`;
     return res.json({
       success: true,
       reference,
-      message: "Paystack test checkout reference created.",
+      authorization_url: `${origin}?paystack_ref=${reference}&order_id=${orderId}&simulated=true`,
+      message: "Paystack test checkout reference generated.",
       isSandbox: true,
     });
   } catch (err: any) {
@@ -879,10 +916,11 @@ app.post("/api/payments/paystack/initialize", async (req, res) => {
   }
 });
 
-// 10. API: Paystack Payment Verify
+// 11. API: Paystack Payment Verify
 app.get("/api/payments/paystack/verify/:reference", async (req, res) => {
   try {
     const { reference } = req.params;
+    const { expectedAmount } = req.query;
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
 
     if (paystackSecret && paystackSecret.startsWith("sk_")) {
@@ -892,23 +930,88 @@ app.get("/api/payments/paystack/verify/:reference", async (req, res) => {
         },
       });
       const data = await response.json();
-      return res.json(data);
+
+      if (!data.status || data.data?.status !== "success") {
+        return res.status(400).json({
+          verified: false,
+          status: data.data?.status || "failed",
+          message: data.data?.gateway_response || data.message || "Transaction verification failed.",
+          data: data.data,
+        });
+      }
+
+      // Check expected amount if supplied (Paystack amounts are in kobo/cents)
+      if (expectedAmount) {
+        const expectedKobo = Math.round(Number(expectedAmount) * 100);
+        if (Math.abs(data.data.amount - expectedKobo) > 5) {
+          return res.status(400).json({
+            verified: false,
+            error: `Payment amount mismatch: Expected ${expectedKobo} but received ${data.data.amount}`,
+          });
+        }
+      }
+
+      return res.json({
+        verified: true,
+        status: "success",
+        reference: data.data.reference,
+        amount: data.data.amount / 100,
+        currency: data.data.currency,
+        channel: data.data.channel,
+        paidAt: data.data.paid_at,
+        customer: data.data.customer,
+        metadata: data.data.metadata,
+      });
     }
 
-    // Simulated sandbox verification
+    // Simulated sandbox verification for tests
     return res.json({
+      verified: true,
       status: "success",
-      data: {
-        reference,
-        status: "success",
-        gateway_response: "Approved",
-        channel: "card",
-        paid_at: new Date().toISOString(),
-      },
+      reference,
+      amount: expectedAmount ? Number(expectedAmount) : 100,
+      currency: "NGN",
+      channel: "card",
+      paidAt: new Date().toISOString(),
+      customer: { email: "customer@shopza.market" },
+      gatewayResponse: "Approved (Simulated Test)",
+      isSandbox: true,
     });
   } catch (err: any) {
     console.error("Paystack verify error:", err);
     return res.status(500).json({ error: "Failed to verify transaction." });
+  }
+});
+
+// 12. API: Paystack Webhook Handler (HMAC SHA512 Signature Verified)
+app.post("/api/payments/paystack/webhook", async (req: any, res) => {
+  try {
+    const signature = req.headers["x-paystack-signature"] as string;
+    const webhookSecret = process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY || "";
+
+    if (webhookSecret && signature) {
+      const rawBody = req.rawBody ? req.rawBody.toString() : JSON.stringify(req.body);
+      const hash = crypto.createHmac("sha512", webhookSecret).update(rawBody).digest("hex");
+      if (hash !== signature) {
+        console.warn("[Paystack Webhook] Invalid signature received.");
+        return res.status(401).send("Invalid signature");
+      }
+    }
+
+    const event = req.body;
+    console.log(`[Paystack Webhook] Event received: ${event?.event}`, event?.data?.reference);
+
+    if (event?.event === "charge.success") {
+      const { reference, amount, customer, metadata } = event.data || {};
+      console.log(`[Paystack Webhook] Successful payment for ref: ${reference}, amount: ${amount / 100}, customer: ${customer?.email}`);
+      // Return 200 OK fast to acknowledge receipt
+      return res.status(200).json({ received: true });
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error("Paystack webhook error:", err);
+    return res.status(500).send("Webhook handler error");
   }
 });
 

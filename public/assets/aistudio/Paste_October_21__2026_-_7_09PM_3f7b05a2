@@ -1,0 +1,1694 @@
+Untitled
+spark
+Gemini
+Gemini 3.8 Flash
+Ran for 4m 38s
+
+summarize_auto
+Action history
+chevron_right
+Here are key actions taken for the app:
+
+edit
+Edited 2 files
+src/components/dashboard/SellerDashboard.tsx
+check_circle
+src/pages/sellerSuitePages.tsx
+check_circle
+error
+Quota limits exceeded
+flag
+Checkpoint
+There was an unexpected error. Finish what you were doing.
+Gemini 3.8 Flash
+Ran for 0s
+error
+Quota limits exceeded
+PROJECT: SHOPZA — COMPLETE E-COMMERCE MARKETPLACE
+I want you to inspect and upgrade my existing Shopza application into a professional, production-ready e-commerce marketplace using TypeScript.
+IMPORTANT: I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY. REMOVE ESCROW COMPLETELY AND USE PAYSTACK FOR CUSTOMER PAYMENTS.
+Do not just give me instructions or a plan. Work directly on the existing project, implement the changes, and test them.
+==================================================
+REMOVE ESCROW COMPLETELY
+==================================================
+Remove all escrow-related functionality from the entire application, including:
+Escrow pages and components.
+Escrow wallets and balances.
+Escrow holding and release mechanisms.
+Escrow-related database fields, functions, and tables that are no longer needed.
+Escrow buttons, notifications, and settings.
+Escrow payment statuses and workflows.
+Replace escrow with Paystack payment processing.
+Do not delete existing legitimate customer orders, transaction records, or important production data. Migrate the database safely where necessary.
+==================================================
+2. INTEGRATE PAYSTACK
+Official documentation:
+https://paystack.com/docs/
+I already have my Paystack account and API key.
+Use secure environment variables:
+PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+PAYSTACK_WEBHOOK_SECRET=your_paystack_webhook_secret
+These are placeholders. Configure the application to accept my actual credentials through the environment or the hosting platform's secure secrets manager.
+NEVER expose the secret key in frontend code, commit it to GitHub, or display it in logs.
+Implement this complete payment workflow:
+Customer selects products.
+Customer adds products to the cart.
+Customer proceeds to checkout.
+Customer confirms their delivery address and contact details.
+Backend calculates the correct order total using trusted database prices.
+Customer selects Paystack.
+Customer clicks Pay Now.
+Backend creates the Paystack transaction.
+Customer is redirected to Paystack's secure checkout.
+Customer completes or abandons payment.
+Paystack redirects the customer back to Shopza.
+Backend verifies the transaction directly with Paystack.
+Backend checks the transaction reference, expected amount, currency, customer, and order.
+The database is updated only after successful verification.
+Customer sees the correct payment result.
+Customer can view the order in their order history.
+Never trust a frontend redirect as proof of payment.
+Implement secure webhook signature verification, duplicate-event protection, server-side validation, and idempotent transaction processing.
+Support test mode and production mode.
+Do not claim payments work until the integration has actually been tested.
+==================================================
+3. CUSTOMER ORDER HISTORY AND TRACKING
+Customers must be able to:
+View all their orders.
+View order details.
+See products, quantities, and prices.
+View the total amount.
+View delivery information.
+View the payment method and transaction reference.
+See payment status.
+Track delivery progress.
+View order dates.
+View their previous purchases.
+Payment statuses:
+Pending.
+Successful.
+Failed.
+Refunded.
+Cancelled, where applicable.
+Order statuses:
+Pending confirmation.
+Confirmed.
+Processing.
+Ready for dispatch.
+Shipped.
+Out for delivery.
+Delivered.
+Cancelled.
+Keep payment status separate from delivery status.
+Enforce valid status transitions and backend permissions.
+==================================================
+4. SELLER DASHBOARD
+Every seller must have a functional dashboard.
+Sellers should be able to:
+View orders containing their products.
+View ordered products and quantities.
+View authorized customer delivery information.
+Track order fulfilment.
+Update permitted fulfilment statuses.
+View sales history.
+View sales totals.
+Manage products and inventory.
+View customer reviews.
+Communicate with customers.
+If one customer orders from multiple sellers, correctly associate each order item with its seller.
+Each seller must only access their own products, orders, and authorized information.
+==================================================
+5. SELLER EARNINGS AND PAYOUTS
+Remove escrow balances and escrow-release mechanisms.
+Track:
+Total order amount.
+Transaction references.
+Payment status.
+Seller order items.
+Seller sales totals.
+Marketplace commission, if configured.
+Seller earnings.
+Refunds and cancellations.
+Payout requests.
+Payout status and transaction references.
+Do not pretend that Paystack automatically pays every seller.
+Investigate the Paystack products and marketplace capabilities available for this application.
+If supported and enabled for my account, implement an appropriate documented subaccount or split-payment solution.
+Otherwise, collect customer payments through the configured merchant account and implement a secure, authorized seller payout workflow using a supported Paystack payout product if my account is eligible.
+Do not invent API endpoints or assume account eligibility.
+Do not create another escrow system under a different name.
+If automatic payouts are unavailable, administrators should be able to review, approve, and record seller payouts securely.
+Keep payment collection, seller earnings, and payouts separate.
+==================================================
+6. PRODUCT REVIEWS AND RATINGS
+Implement a real product review system.
+Customers should be able to:
+Review eligible purchased products.
+Rate products.
+Edit their reviews according to the application's rules.
+Delete their own reviews where permitted.
+View reviews from other customers.
+Requirements:
+Store reviews in the database.
+Prevent unauthorized reviews.
+Prevent duplicate reviews for the same purchase unless explicitly allowed.
+Calculate ratings from actual reviews.
+Display actual review counts.
+Allow administrators to moderate inappropriate reviews.
+Never generate fake reviews or ratings.
+==================================================
+7. BUYER AND SELLER CHAT
+Implement real buyer-seller messaging.
+Features:
+Persistent conversations.
+Messages saved in the database.
+Sender and recipient identification.
+Timestamps.
+Read and unread indicators.
+Notifications for new messages.
+Product-related conversations.
+Order-related conversations.
+Real-time updates where supported.
+Users must not access conversations they are not authorized to view.
+Remove any mock chat functionality that does not save messages.
+==================================================
+8. REMOVE ALL FAKE FEATURES
+Inspect the entire project and remove or replace:
+Fake products.
+Fake customer accounts.
+Fake seller accounts.
+Fake orders.
+Fake transactions.
+Fake reviews.
+Fake notifications.
+Mock chat messages.
+Demo dashboards.
+Fake analytics.
+Buttons that do nothing.
+Forms that do not save data.
+Features that only work temporarily in browser memory.
+Use real database records.
+If the database is empty, display a proper empty state instead of inventing products or transactions.
+Preserve legitimate existing marketplace functionality.
+==================================================
+9. REAL NOTIFICATIONS
+Implement persistent notifications for:
+Orders placed.
+Payments successful.
+Payments failed.
+Orders confirmed.
+Orders dispatched.
+Orders delivered.
+New messages.
+New reviews.
+Refund updates.
+Seller payout updates.
+Requirements:
+Store notifications in the database.
+Associate each notification with the correct user.
+Support read and unread states.
+Allow users to mark notifications as read.
+Allow users to view notification history.
+Enforce backend access controls.
+Only notify customers of successful payments after server-side verification.
+Notifications must be triggered by real backend events.
+==================================================
+10. CUSTOMER AND SELLER PROFILES
+Implement functional account settings.
+Users should be able to manage:
+Name.
+Email address.
+Phone number.
+Profile picture.
+Delivery addresses.
+Password and security settings.
+Notification preferences.
+Sellers should also manage:
+Store name.
+Store description.
+Store logo.
+Store contact information.
+Product listings.
+Fulfilment information.
+Use secure authentication and authorization.
+Users must only modify information they are authorized to change.
+==================================================
+11. PRODUCT MANAGEMENT
+Sellers must be able to:
+Add products.
+Edit products.
+Delete or archive products.
+Upload product images.
+Set prices.
+Manage stock.
+Assign categories.
+View their products.
+View relevant product statistics.
+Requirements:
+Save all product data in the database.
+Store images in persistent storage.
+Validate prices and stock on the backend.
+Prevent purchases when stock is insufficient.
+Prevent unauthorized product modifications.
+Update inventory safely.
+Handle cancellations and refunds according to defined inventory rules.
+Do not use browser local storage as the primary database.
+==================================================
+12. ADMIN DASHBOARD
+Build a fully functional administrator dashboard.
+Administrators should be able to:
+View customers.
+View and manage sellers.
+Review seller registrations.
+Manage product categories.
+Moderate products.
+View orders.
+View verified payment transactions.
+View failed payment attempts.
+Review refund requests.
+Manage seller payout requests.
+Moderate reviews.
+Review reports and complaints.
+Configure marketplace commission where appropriate.
+View real business statistics.
+Use backend-enforced role-based access control.
+Hiding admin pages in the frontend is not sufficient security.
+Record important administrative actions in an audit log.
+==================================================
+13. DELIVERY AGENTS
+Support independent delivery agents.
+Implement:
+Delivery agent registration.
+Agent profiles.
+Delivery availability.
+Delivery fees.
+Delivery assignments.
+Pickup information.
+Delivery destinations.
+Delivery status updates.
+Delivery tracking.
+Delivery completion confirmation.
+Delivery history.
+At checkout, customers should see eligible delivery options when available.
+Allow authorized users to assign delivery jobs.
+Never invent available delivery agents. If none are available, display a proper message and follow the configured delivery policy.
+==================================================
+14. SEARCH AND SHOPPING EXPERIENCE
+Customers must be able to:
+Search for products.
+Browse categories.
+Filter products.
+Sort results.
+View product details.
+See actual prices.
+Check stock availability.
+Add products to their cart.
+Update quantities.
+Remove products.
+Checkout securely.
+View order history.
+Track orders.
+Contact sellers.
+Review eligible purchases.
+Build a modern, professional, responsive interface for Android, iPhone, tablets, and desktop computers.
+Preserve the Shopza branding and existing working features.
+==================================================
+15. DATABASE AND BACKEND
+Inspect the existing project before modifying it.
+Identify the current:
+Frontend framework.
+TypeScript configuration.
+Database.
+Authentication system.
+Backend functions.
+File storage.
+Hosting configuration.
+Keep the existing infrastructure if it is suitable.
+Implement or update the required database structures for:
+Users.
+Seller profiles.
+Products.
+Categories.
+Product images.
+Inventory.
+Orders.
+Order items.
+Payment transactions.
+Refunds.
+Seller earnings.
+Seller payout requests.
+Reviews.
+Conversations.
+Messages.
+Notifications.
+Delivery information.
+Delivery agents.
+Administrative audit logs.
+Adapt these structures to the existing database. Do not blindly create duplicate tables or collections.
+Requirements:
+TypeScript throughout the application where applicable.
+Backend validation.
+Proper database permissions.
+Appropriate indexes.
+Safe data migrations.
+Consistent transaction processing.
+Error handling.
+Duplicate prevention.
+Persistent data across devices and sessions.
+Protection of sensitive information.
+Use database transactions or equivalent consistency mechanisms where supported.
+==================================================
+16. SECURITY
+Implement:
+Secure authentication.
+Role-based access control.
+Server-side authorization.
+Input validation.
+Protection against unauthorized data access.
+Secure payment verification.
+Rate limiting where appropriate.
+Safe error messages.
+Secure environment variables.
+Audit logs for important actions.
+Proper validation of uploaded files.
+Never trust the frontend to determine payment amounts, seller permissions, order ownership, or administrator privileges.
+==================================================
+17. TESTING
+Test Paystack in test mode before using live payments.
+Test:
+Successful payment.
+Failed payment.
+Abandoned checkout.
+Invalid transaction reference.
+Incorrect amount.
+Incorrect currency.
+Duplicate webhooks.
+Verification failure.
+Refreshing the payment callback.
+Attempting to mark an unpaid order as paid.
+Duplicate payment initialization.
+Network interruption during checkout.
+Refund processing, where implemented.
+Seller payout processing, where implemented.
+Also test:
+Registration and login.
+Product creation and editing.
+Cart operations.
+Inventory updates.
+Order creation.
+Order tracking.
+Reviews.
+Chat.
+Notifications.
+Seller permissions.
+Administrator permissions.
+Delivery agent functionality.
+Database persistence across devices.
+Do not use real customer funds during testing.
+Fix build errors, TypeScript errors, broken routes, and backend errors introduced by the changes.
+==================================================
+18. STRICT IMPLEMENTATION INSTRUCTIONS
+Inspect the entire existing codebase first.
+Make changes directly in the existing project.
+Remove escrow completely.
+Integrate Paystack securely.
+Preserve existing working functionality.
+Keep the existing database if suitable.
+Do not replace working authentication with a demo.
+Do not introduce fake products or transactions.
+Do not leave essential buttons nonfunctional.
+Connect frontend components to real backend functions.
+Apply database migrations safely.
+Fix errors caused by the changes.
+Test the actual implementation.
+Provide setup instructions for environment variables.
+List the files created, modified, and removed.
+Explain any required Paystack dashboard configuration.
+Identify anything that still requires my credentials or account approval.
+Never claim something is complete if it has not been implemented or tested.
+Do not delete existing production data unnecessarily.
+Do not stop after producing a plan. Continue with implementation.
+==================================================
+FINAL OBJECTIVE
+Make Shopza a real, professional, production-ready TypeScript e-commerce marketplace.
+REMOVE ESCROW COMPLETELY.
+USE PAYSTACK FOR CUSTOMER PAYMENTS.
+MAKE THE DATABASE, PRODUCTS, ORDERS, SELLER DASHBOARDS, REVIEWS, CHAT, NOTIFICATIONS, DELIVERY AGENTS, ADMIN DASHBOARD, AND PAYMENT RECORDS FUNCTIONAL.
+I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY.
+Prepare the application to use my actual credentials securely. Do not ask me to paste my secret key into frontend code or commit it to the repository.
+START NOW: INSPECT THE EXISTING PROJECT, IMPLEMENT THE CHANGES DIRECTLY, TEST THE RESULT, AND REPORT WHAT IS WORKING AND WHAT SIGURATION.
+Gemini 3.8 Flash
+Ran for 0s
+error
+Quota limits exceeded
+PROJECT: SHOPZA — COMPLETE E-COMMERCE MARKETPLACE
+I want you to inspect and upgrade my existing Shopza application into a professional, production-ready e-commerce marketplace using TypeScript.
+IMPORTANT: I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY. REMOVE ESCROW COMPLETELY AND USE PAYSTACK FOR CUSTOMER PAYMENTS.
+Do not just give me instructions or a plan. Work directly on the existing project, implement the changes, and test them.
+==================================================
+REMOVE ESCROW COMPLETELY
+==================================================
+Remove all escrow-related functionality from the entire application, including:
+Escrow pages and components.
+Escrow wallets and balances.
+Escrow holding and release mechanisms.
+Escrow-related database fields, functions, and tables that are no longer needed.
+Escrow buttons, notifications, and settings.
+Escrow payment statuses and workflows.
+Replace escrow with Paystack payment processing.
+Do not delete existing legitimate customer orders, transaction records, or important production data. Migrate the database safely where necessary.
+==================================================
+2. INTEGRATE PAYSTACK
+Official documentation:
+https://paystack.com/docs/
+I already have my Paystack account and API key.
+Use secure environment variables:
+PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+PAYSTACK_WEBHOOK_SECRET=your_paystack_webhook_secret
+These are placeholders. Configure the application to accept my actual credentials through the environment or the hosting platform's secure secrets manager.
+NEVER expose the secret key in frontend code, commit it to GitHub, or display it in logs.
+Implement this complete payment workflow:
+Customer selects products.
+Customer adds products to the cart.
+Customer proceeds to checkout.
+Customer confirms their delivery address and contact details.
+Backend calculates the correct order total using trusted database prices.
+Customer selects Paystack.
+Customer clicks Pay Now.
+Backend creates the Paystack transaction.
+Customer is redirected to Paystack's secure checkout.
+Customer completes or abandons payment.
+Paystack redirects the customer back to Shopza.
+Backend verifies the transaction directly with Paystack.
+Backend checks the transaction reference, expected amount, currency, customer, and order.
+The database is updated only after successful verification.
+Customer sees the correct payment result.
+Customer can view the order in their order history.
+Never trust a frontend redirect as proof of payment.
+Implement secure webhook signature verification, duplicate-event protection, server-side validation, and idempotent transaction processing.
+Support test mode and production mode.
+Do not claim payments work until the integration has actually been tested.
+==================================================
+3. CUSTOMER ORDER HISTORY AND TRACKING
+Customers must be able to:
+View all their orders.
+View order details.
+See products, quantities, and prices.
+View the total amount.
+View delivery information.
+View the payment method and transaction reference.
+See payment status.
+Track delivery progress.
+View order dates.
+View their previous purchases.
+Payment statuses:
+Pending.
+Successful.
+Failed.
+Refunded.
+Cancelled, where applicable.
+Order statuses:
+Pending confirmation.
+Confirmed.
+Processing.
+Ready for dispatch.
+Shipped.
+Out for delivery.
+Delivered.
+Cancelled.
+Keep payment status separate from delivery status.
+Enforce valid status transitions and backend permissions.
+==================================================
+4. SELLER DASHBOARD
+Every seller must have a functional dashboard.
+Sellers should be able to:
+View orders containing their products.
+View ordered products and quantities.
+View authorized customer delivery information.
+Track order fulfilment.
+Update permitted fulfilment statuses.
+View sales history.
+View sales totals.
+Manage products and inventory.
+View customer reviews.
+Communicate with customers.
+If one customer orders from multiple sellers, correctly associate each order item with its seller.
+Each seller must only access their own products, orders, and authorized information.
+==================================================
+5. SELLER EARNINGS AND PAYOUTS
+Remove escrow balances and escrow-release mechanisms.
+Track:
+Total order amount.
+Transaction references.
+Payment status.
+Seller order items.
+Seller sales totals.
+Marketplace commission, if configured.
+Seller earnings.
+Refunds and cancellations.
+Payout requests.
+Payout status and transaction references.
+Do not pretend that Paystack automatically pays every seller.
+Investigate the Paystack products and marketplace capabilities available for this application.
+If supported and enabled for my account, implement an appropriate documented subaccount or split-payment solution.
+Otherwise, collect customer payments through the configured merchant account and implement a secure, authorized seller payout workflow using a supported Paystack payout product if my account is eligible.
+Do not invent API endpoints or assume account eligibility.
+Do not create another escrow system under a different name.
+If automatic payouts are unavailable, administrators should be able to review, approve, and record seller payouts securely.
+Keep payment collection, seller earnings, and payouts separate.
+==================================================
+6. PRODUCT REVIEWS AND RATINGS
+Implement a real product review system.
+Customers should be able to:
+Review eligible purchased products.
+Rate products.
+Edit their reviews according to the application's rules.
+Delete their own reviews where permitted.
+View reviews from other customers.
+Requirements:
+Store reviews in the database.
+Prevent unauthorized reviews.
+Prevent duplicate reviews for the same purchase unless explicitly allowed.
+Calculate ratings from actual reviews.
+Display actual review counts.
+Allow administrators to moderate inappropriate reviews.
+Never generate fake reviews or ratings.
+==================================================
+7. BUYER AND SELLER CHAT
+Implement real buyer-seller messaging.
+Features:
+Persistent conversations.
+Messages saved in the database.
+Sender and recipient identification.
+Timestamps.
+Read and unread indicators.
+Notifications for new messages.
+Product-related conversations.
+Order-related conversations.
+Real-time updates where supported.
+Users must not access conversations they are not authorized to view.
+Remove any mock chat functionality that does not save messages.
+==================================================
+8. REMOVE ALL FAKE FEATURES
+Inspect the entire project and remove or replace:
+Fake products.
+Fake customer accounts.
+Fake seller accounts.
+Fake orders.
+Fake transactions.
+Fake reviews.
+Fake notifications.
+Mock chat messages.
+Demo dashboards.
+Fake analytics.
+Buttons that do nothing.
+Forms that do not save data.
+Features that only work temporarily in browser memory.
+Use real database records.
+If the database is empty, display a proper empty state instead of inventing products or transactions.
+Preserve legitimate existing marketplace functionality.
+==================================================
+9. REAL NOTIFICATIONS
+Implement persistent notifications for:
+Orders placed.
+Payments successful.
+Payments failed.
+Orders confirmed.
+Orders dispatched.
+Orders delivered.
+New messages.
+New reviews.
+Refund updates.
+Seller payout updates.
+Requirements:
+Store notifications in the database.
+Associate each notification with the correct user.
+Support read and unread states.
+Allow users to mark notifications as read.
+Allow users to view notification history.
+Enforce backend access controls.
+Only notify customers of successful payments after server-side verification.
+Notifications must be triggered by real backend events.
+==================================================
+10. CUSTOMER AND SELLER PROFILES
+Implement functional account settings.
+Users should be able to manage:
+Name.
+Email address.
+Phone number.
+Profile picture.
+Delivery addresses.
+Password and security settings.
+Notification preferences.
+Sellers should also manage:
+Store name.
+Store description.
+Store logo.
+Store contact information.
+Product listings.
+Fulfilment information.
+Use secure authentication and authorization.
+Users must only modify information they are authorized to change.
+==================================================
+11. PRODUCT MANAGEMENT
+Sellers must be able to:
+Add products.
+Edit products.
+Delete or archive products.
+Upload product images.
+Set prices.
+Manage stock.
+Assign categories.
+View their products.
+View relevant product statistics.
+Requirements:
+Save all product data in the database.
+Store images in persistent storage.
+Validate prices and stock on the backend.
+Prevent purchases when stock is insufficient.
+Prevent unauthorized product modifications.
+Update inventory safely.
+Handle cancellations and refunds according to defined inventory rules.
+Do not use browser local storage as the primary database.
+==================================================
+12. ADMIN DASHBOARD
+Build a fully functional administrator dashboard.
+Administrators should be able to:
+View customers.
+View and manage sellers.
+Review seller registrations.
+Manage product categories.
+Moderate products.
+View orders.
+View verified payment transactions.
+View failed payment attempts.
+Review refund requests.
+Manage seller payout requests.
+Moderate reviews.
+Review reports and complaints.
+Configure marketplace commission where appropriate.
+View real business statistics.
+Use backend-enforced role-based access control.
+Hiding admin pages in the frontend is not sufficient security.
+Record important administrative actions in an audit log.
+==================================================
+13. DELIVERY AGENTS
+Support independent delivery agents.
+Implement:
+Delivery agent registration.
+Agent profiles.
+Delivery availability.
+Delivery fees.
+Delivery assignments.
+Pickup information.
+Delivery destinations.
+Delivery status updates.
+Delivery tracking.
+Delivery completion confirmation.
+Delivery history.
+At checkout, customers should see eligible delivery options when available.
+Allow authorized users to assign delivery jobs.
+Never invent available delivery agents. If none are available, display a proper message and follow the configured delivery policy.
+==================================================
+14. SEARCH AND SHOPPING EXPERIENCE
+Customers must be able to:
+Search for products.
+Browse categories.
+Filter products.
+Sort results.
+View product details.
+See actual prices.
+Check stock availability.
+Add products to their cart.
+Update quantities.
+Remove products.
+Checkout securely.
+View order history.
+Track orders.
+Contact sellers.
+Review eligible purchases.
+Build a modern, professional, responsive interface for Android, iPhone, tablets, and desktop computers.
+Preserve the Shopza branding and existing working features.
+==================================================
+15. DATABASE AND BACKEND
+Inspect the existing project before modifying it.
+Identify the current:
+Frontend framework.
+TypeScript configuration.
+Database.
+Authentication system.
+Backend functions.
+File storage.
+Hosting configuration.
+Keep the existing infrastructure if it is suitable.
+Implement or update the required database structures for:
+Users.
+Seller profiles.
+Products.
+Categories.
+Product images.
+Inventory.
+Orders.
+Order items.
+Payment transactions.
+Refunds.
+Seller earnings.
+Seller payout requests.
+Reviews.
+Conversations.
+Messages.
+Notifications.
+Delivery information.
+Delivery agents.
+Administrative audit logs.
+Adapt these structures to the existing database. Do not blindly create duplicate tables or collections.
+Requirements:
+TypeScript throughout the application where applicable.
+Backend validation.
+Proper database permissions.
+Appropriate indexes.
+Safe data migrations.
+Consistent transaction processing.
+Error handling.
+Duplicate prevention.
+Persistent data across devices and sessions.
+Protection of sensitive information.
+Use database transactions or equivalent consistency mechanisms where supported.
+==================================================
+16. SECURITY
+Implement:
+Secure authentication.
+Role-based access control.
+Server-side authorization.
+Input validation.
+Protection against unauthorized data access.
+Secure payment verification.
+Rate limiting where appropriate.
+Safe error messages.
+Secure environment variables.
+Audit logs for important actions.
+Proper validation of uploaded files.
+Never trust the frontend to determine payment amounts, seller permissions, order ownership, or administrator privileges.
+==================================================
+17. TESTING
+Test Paystack in test mode before using live payments.
+Test:
+Successful payment.
+Failed payment.
+Abandoned checkout.
+Invalid transaction reference.
+Incorrect amount.
+Incorrect currency.
+Duplicate webhooks.
+Verification failure.
+Refreshing the payment callback.
+Attempting to mark an unpaid order as paid.
+Duplicate payment initialization.
+Network interruption during checkout.
+Refund processing, where implemented.
+Seller payout processing, where implemented.
+Also test:
+Registration and login.
+Product creation and editing.
+Cart operations.
+Inventory updates.
+Order creation.
+Order tracking.
+Reviews.
+Chat.
+Notifications.
+Seller permissions.
+Administrator permissions.
+Delivery agent functionality.
+Database persistence across devices.
+Do not use real customer funds during testing.
+Fix build errors, TypeScript errors, broken routes, and backend errors introduced by the changes.
+==================================================
+18. STRICT IMPLEMENTATION INSTRUCTIONS
+Inspect the entire existing codebase first.
+Make changes directly in the existing project.
+Remove escrow completely.
+Integrate Paystack securely.
+Preserve existing working functionality.
+Keep the existing database if suitable.
+Do not replace working authentication with a demo.
+Do not introduce fake products or transactions.
+Do not leave essential buttons nonfunctional.
+Connect frontend components to real backend functions.
+Apply database migrations safely.
+Fix errors caused by the changes.
+Test the actual implementation.
+Provide setup instructions for environment variables.
+List the files created, modified, and removed.
+Explain any required Paystack dashboard configuration.
+Identify anything that still requires my credentials or account approval.
+Never claim something is complete if it has not been implemented or tested.
+Do not delete existing production data unnecessarily.
+Do not stop after producing a plan. Continue with implementation.
+==================================================
+FINAL OBJECTIVE
+Make Shopza a real, professional, production-ready TypeScript e-commerce marketplace.
+REMOVE ESCROW COMPLETELY.
+USE PAYSTACK FOR CUSTOMER PAYMENTS.
+MAKE THE DATABASE, PRODUCTS, ORDERS, SELLER DASHBOARDS, REVIEWS, CHAT, NOTIFICATIONS, DELIVERY AGENTS, ADMIN DASHBOARD, AND PAYMENT RECORDS FUNCTIONAL.
+I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY.
+Prepare the application to use my actual credentials securely. Do not ask me to paste my secret key into frontend code or commit it to the repository.
+START NOW: INSPECT THE EXISTING PROJECT, IMPLEMENT THE CHANGES DIRECTLY, TEST THE RESULT, AND REPORT WHAT IS WORKING AND WHAT STILL NEEDS CONFIGURATION.
+Gemini 3.8 Flash
+Ran for 0s
+error
+Quota limits exceeded
+PROJECT: SHOPZA — COMPLETE E-COMMERCE MARKETPLACE
+I want you to inspect and upgrade my existing Shopza application into a professional, production-ready e-commerce marketplace using TypeScript.
+IMPORTANT: I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY. REMOVE ESCROW COMPLETELY AND USE PAYSTACK FOR CUSTOMER PAYMENTS.
+Do not just give me instructions or a plan. Work directly on the existing project, implement the changes, and test them.
+==================================================
+REMOVE ESCROW COMPLETELY
+==================================================
+Remove all escrow-related functionality from the entire application, including:
+Escrow pages and components.
+Escrow wallets and balances.
+Escrow holding and release mechanisms.
+Escrow-related database fields, functions, and tables that are no longer needed.
+Escrow buttons, notifications, and settings.
+Escrow payment statuses and workflows.
+Replace escrow with Paystack payment processing.
+Do not delete existing legitimate customer orders, transaction records, or important production data. Migrate the database safely where necessary.
+==================================================
+2. INTEGRATE PAYSTACK
+Official documentation:
+https://paystack.com/docs/
+I already have my Paystack account and API key.
+Use secure environment variables:
+PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+PAYSTACK_WEBHOOK_SECRET=your_paystack_webhook_secret
+These are placeholders. Configure the application to accept my actual credentials through the environment or the hosting platform's secure secrets manager.
+NEVER expose the secret key in frontend code, commit it to GitHub, or display it in logs.
+Implement this complete payment workflow:
+Customer selects products.
+Customer adds products to the cart.
+Customer proceeds to checkout.
+Customer confirms their delivery address and contact details.
+Backend calculates the correct order total using trusted database prices.
+Customer selects Paystack.
+Customer clicks Pay Now.
+Backend creates the Paystack transaction.
+Customer is redirected to Paystack's secure checkout.
+Customer completes or abandons payment.
+Paystack redirects the customer back to Shopza.
+Backend verifies the transaction directly with Paystack.
+Backend checks the transaction reference, expected amount, currency, customer, and order.
+The database is updated only after successful verification.
+Customer sees the correct payment result.
+Customer can view the order in their order history.
+Never trust a frontend redirect as proof of payment.
+Implement secure webhook signature verification, duplicate-event protection, server-side validation, and idempotent transaction processing.
+Support test mode and production mode.
+Do not claim payments work until the integration has actually been tested.
+==================================================
+3. CUSTOMER ORDER HISTORY AND TRACKING
+Customers must be able to:
+View all their orders.
+View order details.
+See products, quantities, and prices.
+View the total amount.
+View delivery information.
+View the payment method and transaction reference.
+See payment status.
+Track delivery progress.
+View order dates.
+View their previous purchases.
+Payment statuses:
+Pending.
+Successful.
+Failed.
+Refunded.
+Cancelled, where applicable.
+Order statuses:
+Pending confirmation.
+Confirmed.
+Processing.
+Ready for dispatch.
+Shipped.
+Out for delivery.
+Delivered.
+Cancelled.
+Keep payment status separate from delivery status.
+Enforce valid status transitions and backend permissions.
+==================================================
+4. SELLER DASHBOARD
+Every seller must have a functional dashboard.
+Sellers should be able to:
+View orders containing their products.
+View ordered products and quantities.
+View authorized customer delivery information.
+Track order fulfilment.
+Update permitted fulfilment statuses.
+View sales history.
+View sales totals.
+Manage products and inventory.
+View customer reviews.
+Communicate with customers.
+If one customer orders from multiple sellers, correctly associate each order item with its seller.
+Each seller must only access their own products, orders, and authorized information.
+==================================================
+5. SELLER EARNINGS AND PAYOUTS
+Remove escrow balances and escrow-release mechanisms.
+Track:
+Total order amount.
+Transaction references.
+Payment status.
+Seller order items.
+Seller sales totals.
+Marketplace commission, if configured.
+Seller earnings.
+Refunds and cancellations.
+Payout requests.
+Payout status and transaction references.
+Do not pretend that Paystack automatically pays every seller.
+Investigate the Paystack products and marketplace capabilities available for this application.
+If supported and enabled for my account, implement an appropriate documented subaccount or split-payment solution.
+Otherwise, collect customer payments through the configured merchant account and implement a secure, authorized seller payout workflow using a supported Paystack payout product if my account is eligible.
+Do not invent API endpoints or assume account eligibility.
+Do not create another escrow system under a different name.
+If automatic payouts are unavailable, administrators should be able to review, approve, and record seller payouts securely.
+Keep payment collection, seller earnings, and payouts separate.
+==================================================
+6. PRODUCT REVIEWS AND RATINGS
+Implement a real product review system.
+Customers should be able to:
+Review eligible purchased products.
+Rate products.
+Edit their reviews according to the application's rules.
+Delete their own reviews where permitted.
+View reviews from other customers.
+Requirements:
+Store reviews in the database.
+Prevent unauthorized reviews.
+Prevent duplicate reviews for the same purchase unless explicitly allowed.
+Calculate ratings from actual reviews.
+Display actual review counts.
+Allow administrators to moderate inappropriate reviews.
+Never generate fake reviews or ratings.
+==================================================
+7. BUYER AND SELLER CHAT
+Implement real buyer-seller messaging.
+Features:
+Persistent conversations.
+Messages saved in the database.
+Sender and recipient identification.
+Timestamps.
+Read and unread indicators.
+Notifications for new messages.
+Product-related conversations.
+Order-related conversations.
+Real-time updates where supported.
+Users must not access conversations they are not authorized to view.
+Remove any mock chat functionality that does not save messages.
+==================================================
+8. REMOVE ALL FAKE FEATURES
+Inspect the entire project and remove or replace:
+Fake products.
+Fake customer accounts.
+Fake seller accounts.
+Fake orders.
+Fake transactions.
+Fake reviews.
+Fake notifications.
+Mock chat messages.
+Demo dashboards.
+Fake analytics.
+Buttons that do nothing.
+Forms that do not save data.
+Features that only work temporarily in browser memory.
+Use real database records.
+If the database is empty, display a proper empty state instead of inventing products or transactions.
+Preserve legitimate existing marketplace functionality.
+==================================================
+9. REAL NOTIFICATIONS
+Implement persistent notifications for:
+Orders placed.
+Payments successful.
+Payments failed.
+Orders confirmed.
+Orders dispatched.
+Orders delivered.
+New messages.
+New reviews.
+Refund updates.
+Seller payout updates.
+Requirements:
+Store notifications in the database.
+Associate each notification with the correct user.
+Support read and unread states.
+Allow users to mark notifications as read.
+Allow users to view notification history.
+Enforce backend access controls.
+Only notify customers of successful payments after server-side verification.
+Notifications must be triggered by real backend events.
+==================================================
+10. CUSTOMER AND SELLER PROFILES
+Implement functional account settings.
+Users should be able to manage:
+Name.
+Email address.
+Phone number.
+Profile picture.
+Delivery addresses.
+Password and security settings.
+Notification preferences.
+Sellers should also manage:
+Store name.
+Store description.
+Store logo.
+Store contact information.
+Product listings.
+Fulfilment information.
+Use secure authentication and authorization.
+Users must only modify information they are authorized to change.
+==================================================
+11. PRODUCT MANAGEMENT
+Sellers must be able to:
+Add products.
+Edit products.
+Delete or archive products.
+Upload product images.
+Set prices.
+Manage stock.
+Assign categories.
+View their products.
+View relevant product statistics.
+Requirements:
+Save all product data in the database.
+Store images in persistent storage.
+Validate prices and stock on the backend.
+Prevent purchases when stock is insufficient.
+Prevent unauthorized product modifications.
+Update inventory safely.
+Handle cancellations and refunds according to defined inventory rules.
+Do not use browser local storage as the primary database.
+==================================================
+12. ADMIN DASHBOARD
+Build a fully functional administrator dashboard.
+Administrators should be able to:
+View customers.
+View and manage sellers.
+Review seller registrations.
+Manage product categories.
+Moderate products.
+View orders.
+View verified payment transactions.
+View failed payment attempts.
+Review refund requests.
+Manage seller payout requests.
+Moderate reviews.
+Review reports and complaints.
+Configure marketplace commission where appropriate.
+View real business statistics.
+Use backend-enforced role-based access control.
+Hiding admin pages in the frontend is not sufficient security.
+Record important administrative actions in an audit log.
+==================================================
+13. DELIVERY AGENTS
+Support independent delivery agents.
+Implement:
+Delivery agent registration.
+Agent profiles.
+Delivery availability.
+Delivery fees.
+Delivery assignments.
+Pickup information.
+Delivery destinations.
+Delivery status updates.
+Delivery tracking.
+Delivery completion confirmation.
+Delivery history.
+At checkout, customers should see eligible delivery options when available.
+Allow authorized users to assign delivery jobs.
+Never invent available delivery agents. If none are available, display a proper message and follow the configured delivery policy.
+==================================================
+14. SEARCH AND SHOPPING EXPERIENCE
+Customers must be able to:
+Search for products.
+Browse categories.
+Filter products.
+Sort results.
+View product details.
+See actual prices.
+Check stock availability.
+Add products to their cart.
+Update quantities.
+Remove products.
+Checkout securely.
+View order history.
+Track orders.
+Contact sellers.
+Review eligible purchases.
+Build a modern, professional, responsive interface for Android, iPhone, tablets, and desktop computers.
+Preserve the Shopza branding and existing working features.
+==================================================
+15. DATABASE AND BACKEND
+Inspect the existing project before modifying it.
+Identify the current:
+Frontend framework.
+TypeScript configuration.
+Database.
+Authentication system.
+Backend functions.
+File storage.
+Hosting configuration.
+Keep the existing infrastructure if it is suitable.
+Implement or update the required database structures for:
+Users.
+Seller profiles.
+Products.
+Categories.
+Product images.
+Inventory.
+Orders.
+Order items.
+Payment transactions.
+Refunds.
+Seller earnings.
+Seller payout requests.
+Reviews.
+Conversations.
+Messages.
+Notifications.
+Delivery information.
+Delivery agents.
+Administrative audit logs.
+Adapt these structures to the existing database. Do not blindly create duplicate tables or collections.
+Requirements:
+TypeScript throughout the application where applicable.
+Backend validation.
+Proper database permissions.
+Appropriate indexes.
+Safe data migrations.
+Consistent transaction processing.
+Error handling.
+Duplicate prevention.
+Persistent data across devices and sessions.
+Protection of sensitive information.
+Use database transactions or equivalent consistency mechanisms where supported.
+==================================================
+16. SECURITY
+Implement:
+Secure authentication.
+Role-based access control.
+Server-side authorization.
+Input validation.
+Protection against unauthorized data access.
+Secure payment verification.
+Rate limiting where appropriate.
+Safe error messages.
+Secure environment variables.
+Audit logs for important actions.
+Proper validation of uploaded files.
+Never trust the frontend to determine payment amounts, seller permissions, order ownership, or administrator privileges.
+==================================================
+17. TESTING
+Test Paystack in test mode before using live payments.
+Test:
+Successful payment.
+Failed payment.
+Abandoned checkout.
+Invalid transaction reference.
+Incorrect amount.
+Incorrect currency.
+Duplicate webhooks.
+Verification failure.
+Refreshing the payment callback.
+Attempting to mark an unpaid order as paid.
+Duplicate payment initialization.
+Network interruption during checkout.
+Refund processing, where implemented.
+Seller payout processing, where implemented.
+Also test:
+Registration and login.
+Product creation and editing.
+Cart operations.
+Inventory updates.
+Order creation.
+Order tracking.
+Reviews.
+Chat.
+Notifications.
+Seller permissions.
+Administrator permissions.
+Delivery agent functionality.
+Database persistence across devices.
+Do not use real customer funds during testing.
+Fix build errors, TypeScript errors, broken routes, and backend errors introduced by the changes.
+==================================================
+18. STRICT IMPLEMENTATION INSTRUCTIONS
+Inspect the entire existing codebase first.
+Make changes directly in the existing project.
+Remove escrow completely.
+Integrate Paystack securely.
+Preserve existing working functionality.
+Keep the existing database if suitable.
+Do not replace working authentication with a demo.
+Do not introduce fake products or transactions.
+Do not leave essential buttons nonfunctional.
+Connect frontend components to real backend functions.
+Apply database migrations safely.
+Fix errors caused by the changes.
+Test the actual implementation.
+Provide setup instructions for environment variables.
+List the files created, modified, and removed.
+Explain any required Paystack dashboard configuration.
+Identify anything that still requires my credentials or account approval.
+Never claim something is complete if it has not been implemented or tested.
+Do not delete existing production data unnecessarily.
+Do not stop after producing a plan. Continue with implementation.
+==================================================
+FINAL OBJECTIVE
+Make Shopza a real, professional, production-ready TypeScript e-commerce marketplace.
+REMOVE ESCROW COMPLETELY.
+USE PAYSTACK FOR CUSTOMER PAYMENTS.
+MAKE THE DATABASE, PRODUCTS, ORDERS, SELLER DASHBOARDS, REVIEWS, CHAT, NOTIFICATIONS, DELIVERY AGENTS, ADMIN DASHBOARD, AND PAYMENT RECORDS FUNCTIONAL.
+I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY.
+Prepare the application to use my actual credentials securely. Do not ask me to paste my secret key into frontend code or commit it to the repository.
+START NOW: INSPECT THE EXISTING PROJECT, IMPLEMENT THE CHANGES DIRECTLY, TEST THE RESULT, AND REPORT WHAT IS WORKING AND WHAT STILL NEEDS CONFIGURATION.
+Gemini 3.8 Flash
+Canceled
+error
+The task was canceled.
+PROJECT: SHOPZA — COMPLETE E-COMMERCE MARKETPLACE
+I want you to inspect and upgrade my existing Shopza application into a professional, production-ready e-commerce marketplace using TypeScript.
+IMPORTANT: I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY. REMOVE ESCROW COMPLETELY AND USE PAYSTACK FOR CUSTOMER PAYMENTS.
+Do not just give me instructions or a plan. Work directly on the existing project, implement the changes, and test them.
+==================================================
+REMOVE ESCROW COMPLETELY
+==================================================
+Remove all escrow-related functionality from the entire application, including:
+Escrow pages and components.
+Escrow wallets and balances.
+Escrow holding and release mechanisms.
+Escrow-related database fields, functions, and tables that are no longer needed.
+Escrow buttons, notifications, and settings.
+Escrow payment statuses and workflows.
+Replace escrow with Paystack payment processing.
+Do not delete existing legitimate customer orders, transaction records, or important production data. Migrate the database safely where necessary.
+==================================================
+2. INTEGRATE PAYSTACK
+Official documentation:
+https://paystack.com/docs/
+I already have my Paystack account and API key.
+Use secure environment variables:
+PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+PAYSTACK_WEBHOOK_SECRET=your_paystack_webhook_secret
+These are placeholders. Configure the application to accept my actual credentials through the environment or the hosting platform's secure secrets manager.
+NEVER expose the secret key in frontend code, commit it to GitHub, or display it in logs.
+Implement this complete payment workflow:
+Customer selects products.
+Customer adds products to the cart.
+Customer proceeds to checkout.
+Customer confirms their delivery address and contact details.
+Backend calculates the correct order total using trusted database prices.
+Customer selects Paystack.
+Customer clicks Pay Now.
+Backend creates the Paystack transaction.
+Customer is redirected to Paystack's secure checkout.
+Customer completes or abandons payment.
+Paystack redirects the customer back to Shopza.
+Backend verifies the transaction directly with Paystack.
+Backend checks the transaction reference, expected amount, currency, customer, and order.
+The database is updated only after successful verification.
+Customer sees the correct payment result.
+Customer can view the order in their order history.
+Never trust a frontend redirect as proof of payment.
+Implement secure webhook signature verification, duplicate-event protection, server-side validation, and idempotent transaction processing.
+Support test mode and production mode.
+Do not claim payments work until the integration has actually been tested.
+==================================================
+3. CUSTOMER ORDER HISTORY AND TRACKING
+Customers must be able to:
+View all their orders.
+View order details.
+See products, quantities, and prices.
+View the total amount.
+View delivery information.
+View the payment method and transaction reference.
+See payment status.
+Track delivery progress.
+View order dates.
+View their previous purchases.
+Payment statuses:
+Pending.
+Successful.
+Failed.
+Refunded.
+Cancelled, where applicable.
+Order statuses:
+Pending confirmation.
+Confirmed.
+Processing.
+Ready for dispatch.
+Shipped.
+Out for delivery.
+Delivered.
+Cancelled.
+Keep payment status separate from delivery status.
+Enforce valid status transitions and backend permissions.
+==================================================
+4. SELLER DASHBOARD
+Every seller must have a functional dashboard.
+Sellers should be able to:
+View orders containing their products.
+View ordered products and quantities.
+View authorized customer delivery information.
+Track order fulfilment.
+Update permitted fulfilment statuses.
+View sales history.
+View sales totals.
+Manage products and inventory.
+View customer reviews.
+Communicate with customers.
+If one customer orders from multiple sellers, correctly associate each order item with its seller.
+Each seller must only access their own products, orders, and authorized information.
+==================================================
+5. SELLER EARNINGS AND PAYOUTS
+Remove escrow balances and escrow-release mechanisms.
+Track:
+Total order amount.
+Transaction references.
+Payment status.
+Seller order items.
+Seller sales totals.
+Marketplace commission, if configured.
+Seller earnings.
+Refunds and cancellations.
+Payout requests.
+Payout status and transaction references.
+Do not pretend that Paystack automatically pays every seller.
+Investigate the Paystack products and marketplace capabilities available for this application.
+If supported and enabled for my account, implement an appropriate documented subaccount or split-payment solution.
+Otherwise, collect customer payments through the configured merchant account and implement a secure, authorized seller payout workflow using a supported Paystack payout product if my account is eligible.
+Do not invent API endpoints or assume account eligibility.
+Do not create another escrow system under a different name.
+If automatic payouts are unavailable, administrators should be able to review, approve, and record seller payouts securely.
+Keep payment collection, seller earnings, and payouts separate.
+==================================================
+6. PRODUCT REVIEWS AND RATINGS
+Implement a real product review system.
+Customers should be able to:
+Review eligible purchased products.
+Rate products.
+Edit their reviews according to the application's rules.
+Delete their own reviews where permitted.
+View reviews from other customers.
+Requirements:
+Store reviews in the database.
+Prevent unauthorized reviews.
+Prevent duplicate reviews for the same purchase unless explicitly allowed.
+Calculate ratings from actual reviews.
+Display actual review counts.
+Allow administrators to moderate inappropriate reviews.
+Never generate fake reviews or ratings.
+==================================================
+7. BUYER AND SELLER CHAT
+Implement real buyer-seller messaging.
+Features:
+Persistent conversations.
+Messages saved in the database.
+Sender and recipient identification.
+Timestamps.
+Read and unread indicators.
+Notifications for new messages.
+Product-related conversations.
+Order-related conversations.
+Real-time updates where supported.
+Users must not access conversations they are not authorized to view.
+Remove any mock chat functionality that does not save messages.
+==================================================
+8. REMOVE ALL FAKE FEATURES
+Inspect the entire project and remove or replace:
+Fake products.
+Fake customer accounts.
+Fake seller accounts.
+Fake orders.
+Fake transactions.
+Fake reviews.
+Fake notifications.
+Mock chat messages.
+Demo dashboards.
+Fake analytics.
+Buttons that do nothing.
+Forms that do not save data.
+Features that only work temporarily in browser memory.
+Use real database records.
+If the database is empty, display a proper empty state instead of inventing products or transactions.
+Preserve legitimate existing marketplace functionality.
+==================================================
+9. REAL NOTIFICATIONS
+Implement persistent notifications for:
+Orders placed.
+Payments successful.
+Payments failed.
+Orders confirmed.
+Orders dispatched.
+Orders delivered.
+New messages.
+New reviews.
+Refund updates.
+Seller payout updates.
+Requirements:
+Store notifications in the database.
+Associate each notification with the correct user.
+Support read and unread states.
+Allow users to mark notifications as read.
+Allow users to view notification history.
+Enforce backend access controls.
+Only notify customers of successful payments after server-side verification.
+Notifications must be triggered by real backend events.
+==================================================
+10. CUSTOMER AND SELLER PROFILES
+Implement functional account settings.
+Users should be able to manage:
+Name.
+Email address.
+Phone number.
+Profile picture.
+Delivery addresses.
+Password and security settings.
+Notification preferences.
+Sellers should also manage:
+Store name.
+Store description.
+Store logo.
+Store contact information.
+Product listings.
+Fulfilment information.
+Use secure authentication and authorization.
+Users must only modify information they are authorized to change.
+==================================================
+11. PRODUCT MANAGEMENT
+Sellers must be able to:
+Add products.
+Edit products.
+Delete or archive products.
+Upload product images.
+Set prices.
+Manage stock.
+Assign categories.
+View their products.
+View relevant product statistics.
+Requirements:
+Save all product data in the database.
+Store images in persistent storage.
+Validate prices and stock on the backend.
+Prevent purchases when stock is insufficient.
+Prevent unauthorized product modifications.
+Update inventory safely.
+Handle cancellations and refunds according to defined inventory rules.
+Do not use browser local storage as the primary database.
+==================================================
+12. ADMIN DASHBOARD
+Build a fully functional administrator dashboard.
+Administrators should be able to:
+View customers.
+View and manage sellers.
+Review seller registrations.
+Manage product categories.
+Moderate products.
+View orders.
+View verified payment transactions.
+View failed payment attempts.
+Review refund requests.
+Manage seller payout requests.
+Moderate reviews.
+Review reports and complaints.
+Configure marketplace commission where appropriate.
+View real business statistics.
+Use backend-enforced role-based access control.
+Hiding admin pages in the frontend is not sufficient security.
+Record important administrative actions in an audit log.
+==================================================
+13. DELIVERY AGENTS
+Support independent delivery agents.
+Implement:
+Delivery agent registration.
+Agent profiles.
+Delivery availability.
+Delivery fees.
+Delivery assignments.
+Pickup information.
+Delivery destinations.
+Delivery status updates.
+Delivery tracking.
+Delivery completion confirmation.
+Delivery history.
+At checkout, customers should see eligible delivery options when available.
+Allow authorized users to assign delivery jobs.
+Never invent available delivery agents. If none are available, display a proper message and follow the configured delivery policy.
+==================================================
+14. SEARCH AND SHOPPING EXPERIENCE
+Customers must be able to:
+Search for products.
+Browse categories.
+Filter products.
+Sort results.
+View product details.
+See actual prices.
+Check stock availability.
+Add products to their cart.
+Update quantities.
+Remove products.
+Checkout securely.
+View order history.
+Track orders.
+Contact sellers.
+Review eligible purchases.
+Build a modern, professional, responsive interface for Android, iPhone, tablets, and desktop computers.
+Preserve the Shopza branding and existing working features.
+==================================================
+15. DATABASE AND BACKEND
+Inspect the existing project before modifying it.
+Identify the current:
+Frontend framework.
+TypeScript configuration.
+Database.
+Authentication system.
+Backend functions.
+File storage.
+Hosting configuration.
+Keep the existing infrastructure if it is suitable.
+Implement or update the required database structures for:
+Users.
+Seller profiles.
+Products.
+Categories.
+Product images.
+Inventory.
+Orders.
+Order items.
+Payment transactions.
+Refunds.
+Seller earnings.
+Seller payout requests.
+Reviews.
+Conversations.
+Messages.
+Notifications.
+Delivery information.
+Delivery agents.
+Administrative audit logs.
+Adapt these structures to the existing database. Do not blindly create duplicate tables or collections.
+Requirements:
+TypeScript throughout the application where applicable.
+Backend validation.
+Proper database permissions.
+Appropriate indexes.
+Safe data migrations.
+Consistent transaction processing.
+Error handling.
+Duplicate prevention.
+Persistent data across devices and sessions.
+Protection of sensitive information.
+Use database transactions or equivalent consistency mechanisms where supported.
+==================================================
+16. SECURITY
+Implement:
+Secure authentication.
+Role-based access control.
+Server-side authorization.
+Input validation.
+Protection against unauthorized data access.
+Secure payment verification.
+Rate limiting where appropriate.
+Safe error messages.
+Secure environment variables.
+Audit logs for important actions.
+Proper validation of uploaded files.
+Never trust the frontend to determine payment amounts, seller permissions, order ownership, or administrator privileges.
+==================================================
+17. TESTING
+Test Paystack in test mode before using live payments.
+Test:
+Successful payment.
+Failed payment.
+Abandoned checkout.
+Invalid transaction reference.
+Incorrect amount.
+Incorrect currency.
+Duplicate webhooks.
+Verification failure.
+Refreshing the payment callback.
+Attempting to mark an unpaid order as paid.
+Duplicate payment initialization.
+Network interruption during checkout.
+Refund processing, where implemented.
+Seller payout processing, where implemented.
+Also test:
+Registration and login.
+Product creation and editing.
+Cart operations.
+Inventory updates.
+Order creation.
+Order tracking.
+Reviews.
+Chat.
+Notifications.
+Seller permissions.
+Administrator permissions.
+Delivery agent functionality.
+Database persistence across devices.
+Do not use real customer funds during testing.
+Fix build errors, TypeScript errors, broken routes, and backend errors introduced by the changes.
+==================================================
+18. STRICT IMPLEMENTATION INSTRUCTIONS
+Inspect the entire existing codebase first.
+Make changes directly in the existing project.
+Remove escrow completely.
+Integrate Paystack securely.
+Preserve existing working functionality.
+Keep the existing database if suitable.
+Do not replace working authentication with a demo.
+Do not introduce fake products or transactions.
+Do not leave essential buttons nonfunctional.
+Connect frontend components to real backend functions.
+Apply database migrations safely.
+Fix errors caused by the changes.
+Test the actual implementation.
+Provide setup instructions for environment variables.
+List the files created, modified, and removed.
+Explain any required Paystack dashboard configuration.
+Identify anything that still requires my credentials or account approval.
+Never claim something is complete if it has not been implemented or tested.
+Do not delete existing production data unnecessarily.
+Do not stop after producing a plan. Continue with implementation.
+==================================================
+FINAL OBJECTIVE
+Make Shopza a real, professional, production-ready TypeScript e-commerce marketplace.
+REMOVE ESCROW COMPLETELY.
+USE PAYSTACK FOR CUSTOMER PAYMENTS.
+MAKE THE DATABASE, PRODUCTS, ORDERS, SELLER DASHBOARDS, REVIEWS, CHAT, NOTIFICATIONS, DELIVERY AGENTS, ADMIN DASHBOARD, AND PAYMENT RECORDS FUNCTIONAL.
+I ALREADY HAVE A PAYSTACK ACCOUNT AND API KEY.
+Prepare the application to use my actual credentials securely. Do not ask me to paste my secret key into frontend code or commit it to the repository.
+START NOW: INSPECT THE EXISTING PROJECT, IMPLEMENT THE CHANGES DIRECTLY, TEST THE RESULT, AND REPORT WHAT IS WORKING AND WHAT STILL NEEDS CONFIGURATION

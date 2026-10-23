@@ -176,7 +176,7 @@ export const HelpCenterPage: React.FC<SupportPagesProps> = ({ onNavigate }) => {
   const faqs = [
     {
       q: "How does Shopza Buyer Protection work?",
-      a: "When you place an order, your payment is held securely in escrow. Funds are only released to the seller once you receive your items in full compliance with the listing description."
+      a: "When you place an order, your payment is processed directly and verified via Paystack's PCI-DSS Level 1 certified gateway. We back every transaction with our 30-Day Buyer Protection Guarantee and immediate dispute mediation."
     },
     {
       q: "What is the return and refund timeframe?",
@@ -188,7 +188,7 @@ export const HelpCenterPage: React.FC<SupportPagesProps> = ({ onNavigate }) => {
     },
     {
       q: "What payment methods are supported?",
-      a: "Shopza accepts all major credit/debit cards (Visa, Mastercard, American Express), Google Pay, Apple Pay, and Shopza Escrow Pay."
+      a: "Shopza accepts all major debit and credit cards (Visa, Mastercard, Verve), Bank Transfers, USSD, and Apple Pay powered securely by Paystack, as well as Cash on Delivery."
     },
   ];
 

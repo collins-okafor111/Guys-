@@ -116,7 +116,7 @@ export const BuyerDashboardPage: React.FC<BuyerHubProps> = ({
           <p className="text-2xl font-black text-purple-400 mt-1">4</p>
         </div>
         <div className="p-4 rounded-2xl bg-[#0F142A] border border-blue-900/30">
-          <span className="text-[10px] font-bold text-slate-400 uppercase">Escrow Protection</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase">Buyer Protection</span>
           <p className="text-2xl font-black text-emerald-400 mt-1">100%</p>
         </div>
       </div>

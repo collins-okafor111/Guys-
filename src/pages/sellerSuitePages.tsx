@@ -1692,35 +1692,343 @@ export const SellerMessagesPage: React.FC<SellerSuiteProps> = ({ onNavigate }) =
   );
 };
 
-// 40. Payouts, Escrow & Banking (Page 40)
+// 40. Seller Earnings & Payouts (Page 40)
 export const SellerPayoutsPage: React.FC<SellerSuiteProps> = () => {
+  const { currentUser } = useAuth();
+  const { listSellerOrders, listSellerPayoutRequests, requestSellerPayout } = useFirebase();
+
+  const [isRequestOpen, setIsRequestOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const orders = currentUser ? listSellerOrders(currentUser._id) : [];
+  const payouts = currentUser ? listSellerPayoutRequests(currentUser._id) : [];
+
+  // Metrics from real orders
+  const paidOrders = orders.filter((o) => o.paymentStatus === "paid" || o.paymentStatus === "successful");
+  const grossSales = paidOrders.reduce((acc, curr) => acc + curr.subtotal, 0);
+  const commission = paidOrders.reduce((acc, curr) => acc + (curr.platformCommission || 0), 0);
+  const netEarnings = Math.max(0, grossSales - commission);
+
+  const totalPaidOrPending = payouts
+    .filter((p) => p.status === "pending" || p.status === "approved" || p.status === "processed")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const availableBalance = Math.max(0, Math.round((netEarnings - totalPaidOrPending) * 100) / 100);
+
+  const handleRequestPayout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setErrorMessage("Please enter a valid payout amount greater than $0");
+      return;
+    }
+
+    if (numAmount > availableBalance && availableBalance > 0) {
+      setErrorMessage(`Requested amount ($${numAmount.toFixed(2)}) exceeds available balance ($${availableBalance.toFixed(2)})`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await requestSellerPayout({
+        sellerId: currentUser._id,
+        amount: numAmount,
+        bankName,
+        accountNumber,
+        accountName,
+        notes: notes.trim() || undefined,
+      });
+
+      setSuccessMessage(`Payout request for $${numAmount.toFixed(2)} submitted successfully to your ${bankName} account!`);
+      setAmount("");
+      setNotes("");
+      setIsRequestOpen(false);
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to submit payout request");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
-      <div className="border-b border-purple-900/30 pb-4">
-        <h1 className="text-2xl font-black text-white flex items-center gap-2">
-          <Wallet className="w-6 h-6 text-[#00C2FF]" />
-          <span>Payouts, Escrow & Banking</span>
-        </h1>
-        <p className="text-xs text-slate-400">View escrow balance releases and manage linked bank accounts</p>
+      <div className="border-b border-purple-900/30 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white flex items-center gap-2">
+            <Wallet className="w-6 h-6 text-[#00C2FF]" />
+            <span>Seller Earnings & Payouts</span>
+          </h1>
+          <p className="text-xs text-slate-400">
+            Real-time verified Paystack revenue, commission breakdown, and direct bank payouts
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            setAmount(availableBalance.toFixed(2));
+            setIsRequestOpen(true);
+          }}
+          disabled={availableBalance <= 0}
+          className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition-all active:scale-95 self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Request Bank Payout</span>
+        </button>
       </div>
 
-      <div className="p-6 rounded-3xl bg-[#0F142A] border border-purple-900/30 space-y-4 text-xs">
-        <div className="flex justify-between items-center border-b border-purple-900/30 pb-3">
-          <div>
-            <span className="text-slate-400 block text-[10px]">Available For Withdrawal</span>
-            <span className="text-2xl font-black text-white">$1,250.00</span>
-          </div>
-          <button
-            onClick={() => alert("Payout request initiated via ACH transfer.")}
-            className="px-5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-bold shadow-md shadow-purple-900/40"
-          >
-            Request ACH Transfer
-          </button>
+      {successMessage && (
+        <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span>{successMessage}</span>
         </div>
-        <div className="text-slate-400">
-          <p>Payout Cadence: Automated direct deposit</p>
+      )}
+
+      {/* Financial Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-3xl bg-[#0F142A] border border-purple-900/30">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            Available For Payout
+          </span>
+          <div className="text-2xl font-black text-emerald-400 font-mono">
+            ${availableBalance.toFixed(2)}
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">Ready for bank transfer</span>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#0F142A] border border-purple-900/30">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            Gross Sales (Paystack)
+          </span>
+          <div className="text-2xl font-black text-white font-mono">
+            ${grossSales.toFixed(2)}
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">From {paidOrders.length} verified orders</span>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#0F142A] border border-purple-900/30">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            Platform Commission
+          </span>
+          <div className="text-2xl font-black text-indigo-400 font-mono">
+            ${commission.toFixed(2)}
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">5% marketplace platform fee</span>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#0F142A] border border-purple-900/30">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            Total Withdrawn
+          </span>
+          <div className="text-2xl font-black text-purple-400 font-mono">
+            ${totalPaidOrPending.toFixed(2)}
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">{payouts.length} payout requests</span>
         </div>
       </div>
+
+      {/* Paystack Direct Gateway Notice */}
+      <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-800/40 text-xs text-cyan-200 flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <div className="font-bold text-white">Direct Paystack Verified Payments</div>
+          <p className="text-slate-300 text-[11px] leading-relaxed">
+            Customer payments are processed directly via Paystack's PCI-DSS Level 1 certified gateway.
+            All escrow holding mechanisms have been retired in favor of fast, transparent payouts straight to your verified bank account.
+          </p>
+        </div>
+      </div>
+
+      {/* Payout History */}
+      <div className="p-6 rounded-3xl bg-[#0F142A] border border-purple-900/30 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <Clock className="w-4 h-4 text-purple-400" />
+            <span>Payout History</span>
+          </h2>
+          <span className="text-xs text-slate-400 font-mono">{payouts.length} total</span>
+        </div>
+
+        {payouts.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 text-xs">
+            No payout requests recorded yet. Once your orders are paid, you can request bank payouts anytime.
+          </div>
+        ) : (
+          <div className="divide-y divide-purple-900/30">
+            {payouts.map((p) => {
+              const statusColors = {
+                pending: "bg-amber-950/60 text-amber-300 border-amber-800/40",
+                approved: "bg-blue-950/60 text-blue-300 border-blue-800/40",
+                processed: "bg-emerald-950/60 text-emerald-300 border-emerald-800/40",
+                rejected: "bg-rose-950/60 text-rose-300 border-rose-800/40",
+              };
+              return (
+                <div key={p._id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div>
+                    <div className="font-bold text-white flex items-center gap-2">
+                      <span>{p.bankName}</span>
+                      <span className="text-slate-400 font-mono text-[11px]">
+                        (••• {p.accountNumber.slice(-4)})
+                      </span>
+                      <span className="text-slate-300 font-normal">| {p.accountName}</span>
+                    </div>
+                    <div className="text-slate-400 text-[11px] mt-0.5">
+                      Requested: {new Date(p.createdAt).toLocaleDateString()}
+                      {p.paystackReference && (
+                        <span className="ml-2 font-mono text-purple-300">Ref: {p.paystackReference}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono font-bold text-white text-sm">${p.amount.toFixed(2)}</span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                        statusColors[p.status] || statusColors.pending
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Payout Request Modal */}
+      {isRequestOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-md bg-[#0D101D] rounded-3xl border border-purple-500/40 p-6 shadow-2xl text-slate-100 text-xs space-y-4">
+            <button
+              onClick={() => setIsRequestOpen(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-[#15192E]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-950/70 border border-purple-800/50 flex items-center justify-center text-purple-400">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Request Bank Payout</h3>
+                <p className="text-[11px] text-slate-400">
+                  Available: <span className="text-emerald-400 font-bold">${availableBalance.toFixed(2)}</span>
+                </p>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs">
+                {errorMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleRequestPayout} className="space-y-3.5">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-300 font-semibold">Payout Amount ($) *</label>
+                  <button
+                    type="button"
+                    onClick={() => setAmount(availableBalance.toFixed(2))}
+                    className="text-[10px] font-bold text-purple-400 hover:underline"
+                  >
+                    Withdraw All
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  max={availableBalance}
+                  required
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-3.5 py-2.5 bg-[#070914] border border-purple-900/40 rounded-xl text-white font-mono text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Bank Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="e.g. Access Bank, GTBank, Chase, Wells Fargo"
+                  className="w-full px-3.5 py-2 bg-[#070914] border border-purple-900/40 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Account Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  placeholder="10-digit account number"
+                  className="w-full px-3.5 py-2 bg-[#070914] border border-purple-900/40 rounded-xl text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Account Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="Name as registered with your bank"
+                  className="w-full px-3.5 py-2 bg-[#070914] border border-purple-900/40 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Transfer Notes (Optional)</label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Weekly settlement"
+                  className="w-full px-3.5 py-2 bg-[#070914] border border-purple-900/40 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRequestOpen(false)}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold disabled:opacity-40 shadow-lg shadow-emerald-900/40"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Payout Request"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

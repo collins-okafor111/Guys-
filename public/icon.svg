@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#0B0F1F" />
+      <stop offset="100%" stopColor="#04060B" />
+    </linearGradient>
+    <linearGradient id="bagGrad" x1="120" y1="120" x2="392" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#007DFE" />
+      <stop offset="45%" stopColor="#0066FF" />
+      <stop offset="85%" stopColor="#5E17EB" />
+      <stop offset="100%" stopColor="#7928CA" />
+    </linearGradient>
+    <linearGradient id="depthGrad" x1="300" y1="150" x2="420" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#4338CA" />
+      <stop offset="100%" stopColor="#2E1065" />
+    </linearGradient>
+    <linearGradient id="streak1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stopColor="#00C2FF" />
+      <stop offset="100%" stopColor="#0066FF" />
+    </linearGradient>
+    <linearGradient id="streak2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stopColor="#0066FF" />
+      <stop offset="100%" stopColor="#7928CA" />
+    </linearGradient>
+    <linearGradient id="sGrad" x1="200" y1="160" x2="310" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="100%" stopColor="#E2E8F0" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0066FF" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background with subtle squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="508" height="508" x="2" y="2" rx="110" fill="none" stroke="#1E293B" stroke-width="2" />
+
+  <g filter="url(#glow)">
+    <!-- Speed streaks on left -->
+    <rect x="70" y="215" width="85" height="18" rx="9" fill="url(#streak1)" />
+    <rect x="90" y="250" width="70" height="18" rx="9" fill="url(#streak2)" />
+    <rect x="60" y="285" width="95" height="18" rx="9" fill="url(#streak1)" />
+
+    <!-- Bag Handle -->
+    <path d="M210 170 V130 C210 85 302 85 302 130 V170" stroke="#007DFE" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+    <!-- 3D Perspective Flap -->
+    <path d="M330 170 L375 185 L355 365 L300 380 Z" fill="url(#depthGrad)" />
+
+    <!-- Main Bag Body -->
+    <path d="M185 165 H345 L315 375 H160 Z" fill="url(#bagGrad)" />
+
+    <!-- Origami S in Center of Bag -->
+    <path d="M260 215 C230 215 215 230 215 250 C215 275 295 270 295 305 C295 328 275 338 245 338 C225 338 210 330 200 322" stroke="url(#sGrad)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+    <!-- Cart shelf -->
+    <rect x="150" y="375" width="200" height="22" rx="11" fill="#0066FF" />
+
+    <!-- Wheels -->
+    <circle cx="190" cy="420" r="22" fill="#0A0D18" stroke="#334155" stroke-width="5" />
+    <circle cx="190" cy="420" r="8" fill="#64748B" />
+    <circle cx="310" cy="420" r="22" fill="#0A0D18" stroke="#334155" stroke-width="5" />
+    <circle cx="310" cy="420" r="8" fill="#64748B" />
+  </g>
+</svg>

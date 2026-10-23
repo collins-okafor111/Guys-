@@ -10,6 +10,7 @@ interface MobileBottomNavProps {
   onOpenCart: () => void;
   onOpenAuth: () => void;
   onOpenPagesDirectory?: () => void;
+  isContainedInFrame?: boolean;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
@@ -19,6 +20,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenCart,
   onOpenAuth,
   onOpenPagesDirectory,
+  isContainedInFrame = false,
 }) => {
   const { currentUser } = useAuth();
   const { getCart } = useFirebase();
@@ -41,7 +43,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#060813]/95 border-t border-blue-900/30 px-2 py-1 shadow-2xl backdrop-blur-xl font-['Plus_Jakarta_Sans']"
+      className={
+        isContainedInFrame
+          ? "sticky bottom-0 left-0 right-0 z-40 bg-[#060813]/95 border-t border-blue-900/30 px-2 py-1 shadow-2xl backdrop-blur-xl font-['Plus_Jakarta_Sans'] w-full"
+          : "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#060813]/95 border-t border-blue-900/30 px-2 py-1 shadow-2xl backdrop-blur-xl font-['Plus_Jakarta_Sans'] pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      }
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
         {/* 1. Marketplace */}
@@ -98,14 +104,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className="text-[10px] font-semibold tracking-tight">Cart</span>
         </button>
 
-        {/* 5. 50 Pages Directory */}
+        {/* 5. Marketplace Directory */}
         {onOpenPagesDirectory ? (
           <button
             onClick={onOpenPagesDirectory}
             className="flex flex-col items-center justify-center min-w-[50px] min-h-[48px] px-1 py-1 transition-colors text-slate-400 hover:text-white"
           >
             <Layers className="w-5 h-5 mb-0.5 text-blue-400" />
-            <span className="text-[10px] font-semibold tracking-tight">50 Pages</span>
+            <span className="text-[10px] font-semibold tracking-tight">Directory</span>
           </button>
         ) : (
           <button

@@ -72,9 +72,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#0066FF] to-[#7928CA] text-white font-bold hover:brightness-110 transition-all shadow-xs"
           >
             <Layers className="w-3 h-3" />
-            <span>All 50 Pages Directory</span>
+            <span>Marketplace Directory</span>
           </button>
-          <span className="hidden md:inline text-slate-300">24/7 Escrow Protection</span>
+          <span className="hidden md:inline text-slate-300">Paystack Verified Checkout</span>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="px-3 py-2 rounded-xl text-blue-300 hover:text-white hover:bg-[#0F142A] transition-colors flex items-center gap-1.5 border border-blue-900/40"
             >
               <Layers className="w-3.5 h-3.5 text-blue-400" />
-              <span>50 Pages</span>
+              <span>Directory</span>
             </button>
           </nav>
 
@@ -272,7 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-full px-4 py-2 text-left text-blue-300 hover:bg-[#151C3B] hover:text-white flex items-center gap-2 font-medium"
                   >
                     <Layers className="w-4 h-4 text-blue-400" />
-                    <span>50 Pages Directory</span>
+                    <span>Marketplace Directory</span>
                   </button>
 
                   <div className="border-t border-blue-900/30 my-1" />
@@ -378,7 +378,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="w-full py-2 text-left text-blue-400 flex items-center gap-1.5"
           >
             <Layers className="w-4 h-4" />
-            <span>50 Pages Directory</span>
+            <span>Marketplace Directory</span>
           </button>
         </div>
       )}

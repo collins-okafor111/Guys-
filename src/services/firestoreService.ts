@@ -23,6 +23,9 @@ import {
   Message,
   Notification,
   Review,
+  SellerPayoutRequest,
+  DeliveryAgent,
+  PaymentTransaction,
 } from "../types";
 
 export interface FirestoreDataSnapshot {
@@ -35,6 +38,9 @@ export interface FirestoreDataSnapshot {
   conversations: Conversation[];
   messages: Message[];
   users: User[];
+  payoutRequests: SellerPayoutRequest[];
+  deliveryAgents: DeliveryAgent[];
+  transactions: PaymentTransaction[];
 }
 
 export async function fetchAllFirestoreData(): Promise<FirestoreDataSnapshot> {
@@ -48,6 +54,9 @@ export async function fetchAllFirestoreData(): Promise<FirestoreDataSnapshot> {
     conversations: [],
     messages: [],
     users: [],
+    payoutRequests: [],
+    deliveryAgents: [],
+    transactions: [],
   };
 
   try {
@@ -81,6 +90,46 @@ export async function fetchAllFirestoreData(): Promise<FirestoreDataSnapshot> {
       followSnap.forEach((d) => result.follows.push(d.data() as Follow));
     } catch (e) {
       console.warn("Could not fetch follows from Firestore:", e);
+    }
+
+    // 5. Orders
+    try {
+      const ordersSnap = await getDocs(collection(firestoreDb, "orders"));
+      ordersSnap.forEach((d) => result.orders.push(d.data() as Order));
+    } catch (e) {
+      console.warn("Could not fetch orders from Firestore:", e);
+    }
+
+    // 6. Payout Requests
+    try {
+      const payoutSnap = await getDocs(collection(firestoreDb, "payoutRequests"));
+      payoutSnap.forEach((d) => result.payoutRequests.push(d.data() as SellerPayoutRequest));
+    } catch (e) {
+      console.warn("Could not fetch payoutRequests from Firestore:", e);
+    }
+
+    // 7. Delivery Agents
+    try {
+      const agentsSnap = await getDocs(collection(firestoreDb, "deliveryAgents"));
+      agentsSnap.forEach((d) => result.deliveryAgents.push(d.data() as DeliveryAgent));
+    } catch (e) {
+      console.warn("Could not fetch deliveryAgents from Firestore:", e);
+    }
+
+    // 8. Payment Transactions
+    try {
+      const txSnap = await getDocs(collection(firestoreDb, "paymentTransactions"));
+      txSnap.forEach((d) => result.transactions.push(d.data() as PaymentTransaction));
+    } catch (e) {
+      console.warn("Could not fetch paymentTransactions from Firestore:", e);
+    }
+
+    // 9. Users
+    try {
+      const usersSnap = await getDocs(collection(firestoreDb, "users"));
+      usersSnap.forEach((d) => result.users.push(d.data() as User));
+    } catch (e) {
+      console.warn("Could not fetch users from Firestore:", e);
     }
   } catch (err) {
     console.error("Error in fetchAllFirestoreData:", err);
@@ -356,6 +405,52 @@ export function subscribeToConversations(
   } catch (err) {
     console.warn("Could not attach conversations listener:", err);
     return () => {};
+  }
+}
+
+export async function savePayoutRequestToFirestore(payout: SellerPayoutRequest): Promise<void> {
+  try {
+    await setDoc(doc(firestoreDb, "payoutRequests", payout._id), cleanFirestoreData(payout));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `payoutRequests/${payout._id}`);
+  }
+}
+
+export async function updatePayoutRequestInFirestore(
+  payoutId: string,
+  updates: Partial<SellerPayoutRequest>
+): Promise<void> {
+  try {
+    await updateDoc(doc(firestoreDb, "payoutRequests", payoutId), cleanFirestoreData(updates));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, `payoutRequests/${payoutId}`);
+  }
+}
+
+export async function saveDeliveryAgentToFirestore(agent: DeliveryAgent): Promise<void> {
+  try {
+    await setDoc(doc(firestoreDb, "deliveryAgents", agent._id), cleanFirestoreData(agent));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `deliveryAgents/${agent._id}`);
+  }
+}
+
+export async function updateDeliveryAgentInFirestore(
+  agentId: string,
+  updates: Partial<DeliveryAgent>
+): Promise<void> {
+  try {
+    await updateDoc(doc(firestoreDb, "deliveryAgents", agentId), cleanFirestoreData(updates));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, `deliveryAgents/${agentId}`);
+  }
+}
+
+export async function savePaymentTransactionToFirestore(tx: PaymentTransaction): Promise<void> {
+  try {
+    await setDoc(doc(firestoreDb, "paymentTransactions", tx._id), cleanFirestoreData(tx));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `paymentTransactions/${tx._id}`);
   }
 }
 

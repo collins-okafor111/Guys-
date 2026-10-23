@@ -53,13 +53,13 @@ export const PagesDirectoryModal: React.FC<PagesDirectoryModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-black text-white">Marketplace Page Directory</h3>
+                <h3 className="text-lg font-black text-white">Marketplace Directory</h3>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/40">
-                  50 Full Pages
+                  Hubs & Services
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Explore all 50 comprehensive buyer, seller, catalog, and platform pages
+                Explore comprehensive buyer, seller, catalog, checkout, and merchant hubs
               </p>
             </div>
           </div>
@@ -79,7 +79,7 @@ export const PagesDirectoryModal: React.FC<PagesDirectoryModalProps> = ({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by page name, number, or description..."
+              placeholder="Search by department, hub, or keyword..."
               className="w-full pl-10 pr-4 py-2 text-xs bg-[#0F142A] border border-blue-900/40 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
             />
           </div>
@@ -101,7 +101,7 @@ export const PagesDirectoryModal: React.FC<PagesDirectoryModalProps> = ({
           </div>
         </div>
 
-        {/* 50 Pages Grid */}
+        {/* Directory Hubs Grid */}
         <div className="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredPages.map((page) => {
             const Icon = page.icon;
@@ -131,10 +131,10 @@ export const PagesDirectoryModal: React.FC<PagesDirectoryModalProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                      Page {page.number}
+                      {page.group}
                     </span>
                     <span className="text-[10px] text-slate-500 font-medium truncate max-w-[80px]">
-                      {page.group}
+                      {page.shortTitle}
                     </span>
                   </div>
                   <h4 className="text-xs font-bold text-white truncate mt-0.5 group-hover:text-blue-300 transition-colors">
@@ -152,7 +152,7 @@ export const PagesDirectoryModal: React.FC<PagesDirectoryModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 bg-[#070914] border-t border-blue-900/25 flex items-center justify-between text-xs text-slate-400">
-          <span>Showing {filteredPages.length} of 50 pages</span>
+          <span>{filteredPages.length} active marketplace sections</span>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-xl bg-[#151C3B] text-slate-300 hover:text-white font-semibold transition-colors"

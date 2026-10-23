@@ -23,15 +23,15 @@ export const BuyerProtectionPage: React.FC = () => {
         </div>
         <h1 className="text-3xl font-black text-white">The Shopza Buyer Guarantee</h1>
         <p className="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed">
-          Every purchase made on Shopza is protected by our triple-layer escrow guarantee. We ensure authentic merchandise, secure payment, and guaranteed delivery.
+          Every purchase made on Shopza is protected by our verified buyer protection guarantee. We ensure authentic merchandise, secure Paystack payments, and reliable delivery.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
         <div className="p-5 rounded-2xl bg-[#0F142A] border border-blue-900/30 space-y-2">
-          <h3 className="font-bold text-white text-sm text-blue-400">1. Escrow Safe Pay</h3>
+          <h3 className="font-bold text-white text-sm text-blue-400">1. Paystack Secure Pay</h3>
           <p className="text-slate-300 leading-relaxed">
-            Your money never goes directly to an unverified third party. Funds are locked securely in Shopza Escrow until you confirm receipt.
+            Your payment is processed through Paystack's PCI-DSS Level 1 certified gateway. Every transaction is authenticated and verified before fulfillment.
           </p>
         </div>
         <div className="p-5 rounded-2xl bg-[#0F142A] border border-blue-900/30 space-y-2">
@@ -177,7 +177,7 @@ export const TermsPrivacyPage: React.FC = () => {
 
         <h3 className="font-bold text-white text-sm pt-2">3. Dispute Resolution</h3>
         <p>
-          In the event of an unresolvable transaction dispute between a buyer and seller, Shopza Mediation acts as a neutral binding arbitrator under our Escrow Guarantee.
+          In the event of an unresolvable transaction dispute between a buyer and seller, Shopza Mediation acts as a neutral binding arbitrator under our Buyer Protection Guarantee.
         </p>
       </div>
     </div>

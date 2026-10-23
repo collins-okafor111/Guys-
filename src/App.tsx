@@ -213,15 +213,11 @@ function MainApp() {
         onOpenPagesDirectory={() => setIsPagesDirectoryOpen(true)}
       />
 
-      {/* 50-Page Interactive Switcher & Breadcrumbs Bar */}
+      {/* Marketplace Department & Section Navigation Bar */}
       <div className="bg-[#090C1D] border-b border-blue-900/30 px-4 sm:px-6 py-2.5 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-          {/* Page Counter & Breadcrumb */}
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#0066FF] to-[#7928CA] text-white font-extrabold text-[11px] shadow-sm">
-              Page {currentPageDef.number} of 50
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-[#0F142A] text-blue-300 border border-blue-900/40">
               {currentPageDef.group}
             </span>
             <span className="font-bold text-white truncate max-w-xs sm:max-w-md">
@@ -229,25 +225,23 @@ function MainApp() {
             </span>
           </div>
 
-          {/* Quick Page Jump Dropdown & Prev/Next Controls */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={handlePrevPage}
               className="p-1.5 rounded-lg bg-[#0F142A] hover:bg-[#151C3B] border border-blue-900/40 text-slate-300 hover:text-white transition-colors"
-              title="Previous Page"
+              title="Previous View"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            {/* Jump To Page Select */}
             <select
               value={currentPageId}
               onChange={(e) => handleNavigate(e.target.value)}
-              className="px-2.5 py-1 text-xs font-semibold bg-[#0F142A] border border-blue-900/50 rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[210px] truncate"
+              className="px-2.5 py-1 text-xs font-semibold bg-[#0F142A] border border-blue-900/50 rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[240px] truncate"
             >
               {ALL_50_PAGES.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.number}. {p.shortTitle} ({p.group})
+                  {p.title} • {p.group}
                 </option>
               ))}
             </select>
@@ -265,7 +259,7 @@ function MainApp() {
               className="ml-1 px-3 py-1 bg-gradient-to-r from-[#0066FF] to-[#7928CA] text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm hover:brightness-110 transition-all active:scale-95"
             >
               <Layers className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">All 50 Pages</span>
+              <span className="hidden sm:inline">Directory</span>
             </button>
           </div>
         </div>
@@ -287,7 +281,7 @@ function MainApp() {
         </div>
       )}
 
-      {/* Main 50-Page Router */}
+      {/* Main Content Router */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         <PageRenderer
           currentPageId={currentPageId}
@@ -324,7 +318,7 @@ function MainApp() {
         onOpenPagesDirectory={() => setIsPagesDirectoryOpen(true)}
       />
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation (Responsive: visible on mobile screens) */}
       <MobileBottomNav
         currentView={currentPageId}
         onNavigate={handleNavigate}

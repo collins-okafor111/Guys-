@@ -15,6 +15,9 @@ import {
   Review,
   PlatformConfig,
   ShippingAddress,
+  SellerPayoutRequest,
+  DeliveryAgent,
+  PaymentTransaction,
 } from "../types";
 import {
   fetchAllFirestoreData,
@@ -33,6 +36,11 @@ import {
   saveReviewToFirestore,
   saveCartItemToFirestore,
   deleteCartItemFromFirestore,
+  savePayoutRequestToFirestore,
+  updatePayoutRequestInFirestore,
+  saveDeliveryAgentToFirestore,
+  updateDeliveryAgentInFirestore,
+  savePaymentTransactionToFirestore,
   INITIAL_CURATED_STORES,
   INITIAL_CURATED_PRODUCTS,
 } from "../services/firestoreService";
@@ -66,6 +74,9 @@ export interface DatabaseState {
   notifications: Notification[];
   reviews: Review[];
   platformConfig: PlatformConfig;
+  payoutRequests: SellerPayoutRequest[];
+  deliveryAgents: DeliveryAgent[];
+  transactions: PaymentTransaction[];
 }
 
 const initialDbState: DatabaseState = {
@@ -87,6 +98,9 @@ const initialDbState: DatabaseState = {
     promotionalZeroActive: false,
     updatedAt: Date.now(),
   },
+  payoutRequests: [],
+  deliveryAgents: [],
+  transactions: [],
 };
 
 export interface TestResult {
@@ -192,6 +206,9 @@ export interface FirebaseContextType {
   createCheckoutOrder: (args: {
     buyerId: string;
     shippingAddress: ShippingAddress;
+    paymentMethod?: "paystack" | "card" | "delivery";
+    paymentReference?: string;
+    paystackTransactionId?: string;
   }) => Promise<{ success: boolean; orderIds: string[] }>;
   updateOrderStatus: (args: {
     orderId: string;
@@ -202,6 +219,48 @@ export interface FirebaseContextType {
   listBuyerOrders: (buyerId: string) => (Order & { items: OrderItem[]; storeName: string })[];
   listSellerOrders: (sellerId: string) => (Order & { items: OrderItem[]; buyerName: string; buyerEmail: string })[];
   getOrderById: (orderId: string, userId: string) => (Order & { items: OrderItem[]; storeName: string }) | null;
+
+  // Seller Payout operations
+  requestSellerPayout: (args: {
+    sellerId: string;
+    storeId?: string;
+    amount: number;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    notes?: string;
+  }) => Promise<SellerPayoutRequest>;
+  listSellerPayoutRequests: (sellerId?: string) => SellerPayoutRequest[];
+  updatePayoutStatus: (args: {
+    payoutId: string;
+    status: "approved" | "processed" | "rejected";
+    paystackTransferCode?: string;
+    paystackReference?: string;
+    notes?: string;
+  }) => Promise<SellerPayoutRequest>;
+
+  // Delivery Agent operations
+  registerDeliveryAgent: (args: {
+    userId: string;
+    name: string;
+    phone: string;
+    vehicleType: "motorcycle" | "van" | "bicycle" | "car";
+    licensePlate?: string;
+    city: string;
+  }) => Promise<DeliveryAgent>;
+  listDeliveryAgents: () => DeliveryAgent[];
+  assignDeliveryAgentToOrder: (args: {
+    orderId: string;
+    deliveryAgentId: string;
+  }) => Promise<Order>;
+  updateOrderDeliveryStatus: (args: {
+    orderId: string;
+    status: Order["status"];
+    deliveryStatus: Order["deliveryStatus"];
+  }) => Promise<Order>;
+
+  // Payment Transactions
+  listPaymentTransactions: () => PaymentTransaction[];
 
   // Follow operations
   getFollowStatus: (followerId: string | undefined, sellerId: string) => { isFollowing: boolean; followerCount: number; isSelf: boolean };
@@ -327,6 +386,10 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           favorites: snap.favorites,
           conversations: snap.conversations,
           messages: snap.messages,
+          users: snap.users && snap.users.length > 0 ? snap.users : prev.users,
+          payoutRequests: snap.payoutRequests || [],
+          deliveryAgents: snap.deliveryAgents || [],
+          transactions: snap.transactions || [],
         }));
       })
       .catch((err) => {
@@ -993,7 +1056,13 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // ORDERS OPERATIONS
   const createCheckoutOrder = useCallback(
-    async (args: { buyerId: string; shippingAddress: ShippingAddress }) => {
+    async (args: {
+      buyerId: string;
+      shippingAddress: ShippingAddress;
+      paymentMethod?: "paystack" | "card" | "delivery";
+      paymentReference?: string;
+      paystackTransactionId?: string;
+    }) => {
       const userItems = db.cartItems.filter((c) => c.userId === args.buyerId);
       if (userItems.length === 0) throw new Error("Your cart is empty");
 
@@ -1009,6 +1078,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const newOrders: Order[] = [];
       const newOrderItems: OrderItem[] = [];
       const notifs: Notification[] = [];
+      const newTransactions: PaymentTransaction[] = [];
       const productInventoryDeltas = new Map<string, number>();
 
       for (const [storeId, items] of storeMap.entries()) {
@@ -1050,6 +1120,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const shippingFee = subtotal > 100 ? 0 : 9.99;
         const total = Math.round((subtotal + shippingFee) * 100) / 100;
 
+        const isPaystack = args.paymentMethod !== "delivery";
         const order: Order = {
           _id: orderId,
           buyerId: args.buyerId,
@@ -1057,7 +1128,12 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           sellerId: store.ownerId,
           orderNumber: currentOrderNumber,
           status: "confirmed",
-          paymentStatus: "paid",
+          paymentStatus: isPaystack ? "paid" : "pending",
+          paymentMethod: args.paymentMethod || "paystack",
+          paymentReference: args.paymentReference,
+          paystackTransactionId: args.paystackTransactionId,
+          paystackPaidAt: isPaystack ? new Date().toISOString() : undefined,
+          deliveryStatus: "unassigned",
           subtotal: Math.round(subtotal * 100) / 100,
           shippingFee,
           platformCommission,
@@ -1069,13 +1145,33 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         newOrders.push(order);
 
+        // Record payment transaction
+        if (isPaystack && (args.paymentReference || args.paymentMethod)) {
+          const tx: PaymentTransaction = {
+            _id: `tx_${now}_${Math.random().toString(36).substring(2, 6)}`,
+            reference: args.paymentReference || `SHP-TX-${now}`,
+            orderId,
+            buyerId: args.buyerId,
+            amount: total,
+            currency: "USD",
+            gateway: "paystack",
+            status: "paid",
+            channel: args.paymentMethod === "card" ? "card" : "paystack_checkout",
+            paidAt: new Date().toISOString(),
+            gatewayResponse: "Successful Paystack Payment",
+            createdAt: now,
+          };
+          newTransactions.push(tx);
+          savePaymentTransactionToFirestore(tx).catch((e) => console.warn("Firestore tx save error:", e));
+        }
+
         // Notify seller
         notifs.push({
           _id: `notif_${now}_s_${orderId}`,
           userId: store.ownerId,
           type: "order",
           title: `New Order Received! #${currentOrderNumber}`,
-          message: `Order for $${total.toFixed(2)} received from ${args.shippingAddress.fullName}.`,
+          message: `Order for $${total.toFixed(2)} received from ${args.shippingAddress.fullName} via Paystack.`,
           link: `/seller/orders`,
           read: false,
           createdAt: now,
@@ -1087,7 +1183,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           userId: args.buyerId,
           type: "order",
           title: `Order #${currentOrderNumber} Confirmed`,
-          message: `Your order from "${store.name}" has been placed for $${total.toFixed(2)}.`,
+          message: `Your payment was verified via Paystack. Order from "${store.name}" is placed for $${total.toFixed(2)}.`,
           link: `/buyer/orders`,
           read: false,
           createdAt: now,
@@ -1099,6 +1195,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         orders: [...newOrders, ...prev.orders],
         orderItems: [...newOrderItems, ...prev.orderItems],
         notifications: [...notifs, ...prev.notifications],
+        transactions: [...newTransactions, ...prev.transactions],
         cartItems: prev.cartItems.filter((c) => c.userId !== args.buyerId),
         products: prev.products.map((p) => {
           const delta = productInventoryDeltas.get(p._id);
@@ -1221,6 +1318,290 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
     [db.orders, db.orderItems, db.stores]
   );
+
+  // SELLER PAYOUT OPERATIONS
+  const requestSellerPayout = useCallback(
+    async (args: {
+      sellerId: string;
+      storeId?: string;
+      amount: number;
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+      notes?: string;
+    }) => {
+      if (args.amount <= 0) throw new Error("Payout amount must be greater than $0");
+      if (!args.bankName || !args.accountNumber || !args.accountName) {
+        throw new Error("Complete bank account details are required");
+      }
+
+      // Check seller's earnings
+      const sellerOrders = db.orders.filter(
+        (o) => o.sellerId === args.sellerId && (o.paymentStatus === "paid" || o.paymentStatus === "successful")
+      );
+      const totalEarned = sellerOrders.reduce(
+        (sum, o) => sum + (o.subtotal - (o.platformCommission || 0)),
+        0
+      );
+      const existingPayouts = db.payoutRequests.filter(
+        (p) => p.sellerId === args.sellerId && (p.status === "pending" || p.status === "approved" || p.status === "processed")
+      );
+      const totalPaidOrPending = existingPayouts.reduce((sum, p) => sum + p.amount, 0);
+      const availableBalance = Math.max(0, Math.round((totalEarned - totalPaidOrPending) * 100) / 100);
+
+      if (args.amount > availableBalance && availableBalance > 0) {
+        throw new Error(`Requested amount ($${args.amount.toFixed(2)}) exceeds your available balance ($${availableBalance.toFixed(2)})`);
+      }
+
+      const now = Date.now();
+      const payout: SellerPayoutRequest = {
+        _id: `payout_${now}_${Math.random().toString(36).substring(2, 7)}`,
+        sellerId: args.sellerId,
+        storeId: args.storeId,
+        amount: Math.round(args.amount * 100) / 100,
+        bankName: args.bankName.trim(),
+        accountNumber: args.accountNumber.trim(),
+        accountName: args.accountName.trim(),
+        status: "pending",
+        notes: args.notes,
+        createdAt: now,
+      };
+
+      setDb((prev) => ({
+        ...prev,
+        payoutRequests: [payout, ...prev.payoutRequests],
+        notifications: [
+          {
+            _id: `notif_${now}_payout`,
+            userId: args.sellerId,
+            type: "system",
+            title: "Payout Request Submitted",
+            message: `Your payout request for $${payout.amount.toFixed(2)} to ${payout.bankName} is pending review.`,
+            link: "/seller/payouts",
+            read: false,
+            createdAt: now,
+          },
+          ...prev.notifications,
+        ],
+      }));
+
+      savePayoutRequestToFirestore(payout).catch((e) => console.warn("Firestore payout save error:", e));
+      return payout;
+    },
+    [db.orders, db.payoutRequests]
+  );
+
+  const listSellerPayoutRequests = useCallback(
+    (sellerId?: string) => {
+      if (sellerId) {
+        return db.payoutRequests.filter((p) => p.sellerId === sellerId);
+      }
+      return db.payoutRequests;
+    },
+    [db.payoutRequests]
+  );
+
+  const updatePayoutStatus = useCallback(
+    async (args: {
+      payoutId: string;
+      status: "approved" | "processed" | "rejected";
+      paystackTransferCode?: string;
+      paystackReference?: string;
+      notes?: string;
+    }) => {
+      const payout = db.payoutRequests.find((p) => p._id === args.payoutId);
+      if (!payout) throw new Error("Payout request not found");
+
+      const now = Date.now();
+      const updated: SellerPayoutRequest = {
+        ...payout,
+        status: args.status,
+        paystackTransferCode: args.paystackTransferCode || payout.paystackTransferCode,
+        paystackReference: args.paystackReference || payout.paystackReference,
+        notes: args.notes !== undefined ? args.notes : payout.notes,
+        processedAt: args.status === "processed" || args.status === "approved" ? now : payout.processedAt,
+      };
+
+      setDb((prev) => ({
+        ...prev,
+        payoutRequests: prev.payoutRequests.map((p) => (p._id === args.payoutId ? updated : p)),
+        notifications: [
+          {
+            _id: `notif_${now}_payout_status`,
+            userId: payout.sellerId,
+            type: "system",
+            title: `Payout Request ${args.status.toUpperCase()}`,
+            message: `Your payout request for $${payout.amount.toFixed(2)} has been ${args.status}.${args.paystackReference ? ` Ref: ${args.paystackReference}` : ""}`,
+            link: "/seller/payouts",
+            read: false,
+            createdAt: now,
+          },
+          ...prev.notifications,
+        ],
+      }));
+
+      updatePayoutRequestInFirestore(args.payoutId, updated).catch((e) =>
+        console.warn("Firestore payout update error:", e)
+      );
+      return updated;
+    },
+    [db.payoutRequests]
+  );
+
+  // DELIVERY AGENT OPERATIONS
+  const registerDeliveryAgent = useCallback(
+    async (args: {
+      userId: string;
+      name: string;
+      phone: string;
+      vehicleType: "motorcycle" | "van" | "bicycle" | "car";
+      licensePlate?: string;
+      city: string;
+    }) => {
+      const existing = db.deliveryAgents.find((a) => a.userId === args.userId);
+      if (existing) return existing;
+
+      const now = Date.now();
+      const agent: DeliveryAgent = {
+        _id: `agent_${now}_${Math.random().toString(36).substring(2, 7)}`,
+        userId: args.userId,
+        name: args.name.trim(),
+        phone: args.phone.trim(),
+        vehicleType: args.vehicleType,
+        licensePlate: args.licensePlate?.trim(),
+        city: args.city.trim(),
+        isAvailable: true,
+        activeDeliveriesCount: 0,
+        completedDeliveriesCount: 0,
+        rating: 5.0,
+        createdAt: now,
+      };
+
+      setDb((prev) => ({
+        ...prev,
+        deliveryAgents: [agent, ...prev.deliveryAgents],
+      }));
+
+      saveDeliveryAgentToFirestore(agent).catch((e) => console.warn("Firestore agent save error:", e));
+      return agent;
+    },
+    [db.deliveryAgents]
+  );
+
+  const listDeliveryAgents = useCallback(() => {
+    return db.deliveryAgents;
+  }, [db.deliveryAgents]);
+
+  const assignDeliveryAgentToOrder = useCallback(
+    async (args: { orderId: string; deliveryAgentId: string }) => {
+      const order = db.orders.find((o) => o._id === args.orderId);
+      if (!order) throw new Error("Order not found");
+
+      const agent = db.deliveryAgents.find((a) => a._id === args.deliveryAgentId);
+      if (!agent) throw new Error("Delivery agent not found");
+
+      const now = Date.now();
+      const updatedOrder: Order = {
+        ...order,
+        deliveryAgentId: agent._id,
+        deliveryAgentName: agent.name,
+        deliveryAgentPhone: agent.phone,
+        deliveryStatus: "assigned",
+        status: "processing",
+        updatedAt: now,
+      };
+
+      setDb((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) => (o._id === args.orderId ? updatedOrder : o)),
+        deliveryAgents: prev.deliveryAgents.map((a) =>
+          a._id === agent._id ? { ...a, activeDeliveriesCount: a.activeDeliveriesCount + 1 } : a
+        ),
+        notifications: [
+          {
+            _id: `notif_${now}_agent_assigned`,
+            userId: order.buyerId,
+            type: "status",
+            title: "Delivery Agent Assigned",
+            message: `${agent.name} has been assigned to deliver order #${order.orderNumber}.`,
+            link: "/buyer/orders",
+            read: false,
+            createdAt: now,
+          },
+          ...prev.notifications,
+        ],
+      }));
+
+      saveOrderToFirestore(updatedOrder).catch((e) => console.warn("Firestore order update error:", e));
+      updateDeliveryAgentInFirestore(agent._id, { activeDeliveriesCount: agent.activeDeliveriesCount + 1 }).catch(
+        (e) => console.warn("Firestore agent update error:", e)
+      );
+      return updatedOrder;
+    },
+    [db.orders, db.deliveryAgents]
+  );
+
+  const updateOrderDeliveryStatus = useCallback(
+    async (args: {
+      orderId: string;
+      status: Order["status"];
+      deliveryStatus: Order["deliveryStatus"];
+    }) => {
+      const order = db.orders.find((o) => o._id === args.orderId);
+      if (!order) throw new Error("Order not found");
+
+      const now = Date.now();
+      const updatedOrder: Order = {
+        ...order,
+        status: args.status,
+        deliveryStatus: args.deliveryStatus,
+        updatedAt: now,
+      };
+
+      setDb((prev) => {
+        let updatedAgents = prev.deliveryAgents;
+        if (args.deliveryStatus === "delivered" && order.deliveryAgentId) {
+          updatedAgents = prev.deliveryAgents.map((a) => {
+            if (a._id === order.deliveryAgentId) {
+              return {
+                ...a,
+                activeDeliveriesCount: Math.max(0, a.activeDeliveriesCount - 1),
+                completedDeliveriesCount: a.completedDeliveriesCount + 1,
+              };
+            }
+            return a;
+          });
+        }
+        return {
+          ...prev,
+          orders: prev.orders.map((o) => (o._id === args.orderId ? updatedOrder : o)),
+          deliveryAgents: updatedAgents,
+          notifications: [
+            {
+              _id: `notif_${now}_del_${args.deliveryStatus}`,
+              userId: order.buyerId,
+              type: "status",
+              title: `Order #${order.orderNumber} ${args.deliveryStatus?.toUpperCase() || args.status.toUpperCase()}`,
+              message: `Your package delivery status is now "${args.deliveryStatus || args.status}".`,
+              link: "/buyer/orders",
+              read: false,
+              createdAt: now,
+            },
+            ...prev.notifications,
+          ],
+        };
+      });
+
+      saveOrderToFirestore(updatedOrder).catch((e) => console.warn("Firestore order update error:", e));
+      return updatedOrder;
+    },
+    [db.orders]
+  );
+
+  // PAYMENT TRANSACTIONS
+  const listPaymentTransactions = useCallback(() => {
+    return db.transactions;
+  }, [db.transactions]);
 
   // FOLLOW OPERATIONS
   const getFollowStatus = useCallback(
@@ -1786,6 +2167,14 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         listBuyerOrders,
         listSellerOrders,
         getOrderById,
+        requestSellerPayout,
+        listSellerPayoutRequests,
+        updatePayoutStatus,
+        registerDeliveryAgent,
+        listDeliveryAgents,
+        assignDeliveryAgentToOrder,
+        updateOrderDeliveryStatus,
+        listPaymentTransactions,
         getFollowStatus,
         followSeller,
         unfollowSeller,

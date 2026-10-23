@@ -88,8 +88,18 @@ export interface ShippingAddress {
   phone: string;
 }
 
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
-export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type OrderStatus =
+  | "pending confirmation"
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "ready for dispatch"
+  | "shipped"
+  | "out for delivery"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentStatus = "pending" | "successful" | "paid" | "failed" | "refunded" | "cancelled";
 
 export interface OrderItem {
   _id?: string;
@@ -109,18 +119,72 @@ export interface Order {
   orderNumber: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  paymentMethod?: "paystack" | "card" | "delivery";
+  paymentReference?: string;
+  paystackTransactionId?: string;
+  paystackPaidAt?: string;
   subtotal: number;
   shippingFee: number;
   platformCommission: number;
   total: number;
   shippingAddress: ShippingAddress;
   trackingNumber?: string;
+  deliveryAgentId?: string;
+  deliveryAgentName?: string;
+  deliveryAgentPhone?: string;
+  deliveryStatus?: "unassigned" | "assigned" | "picked_up" | "in_transit" | "delivered";
   createdAt: number;
   updatedAt: number;
   items?: OrderItem[];
   storeName?: string;
   buyerName?: string;
   buyerEmail?: string;
+}
+
+export interface PaymentTransaction {
+  _id: string;
+  reference: string;
+  orderId: string;
+  buyerId: string;
+  amount: number;
+  currency: string;
+  gateway: "paystack" | "delivery";
+  status: PaymentStatus;
+  channel?: string;
+  paidAt?: string;
+  gatewayResponse?: string;
+  createdAt: number;
+}
+
+export interface SellerPayoutRequest {
+  _id: string;
+  sellerId: string;
+  storeId?: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  status: "pending" | "approved" | "processed" | "rejected";
+  paystackTransferCode?: string;
+  paystackReference?: string;
+  notes?: string;
+  createdAt: number;
+  processedAt?: number;
+}
+
+export interface DeliveryAgent {
+  _id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  vehicleType: "motorcycle" | "van" | "bicycle" | "car";
+  licensePlate?: string;
+  city: string;
+  isAvailable: boolean;
+  activeDeliveriesCount: number;
+  completedDeliveriesCount: number;
+  rating?: number;
+  createdAt: number;
 }
 
 export interface Follow {

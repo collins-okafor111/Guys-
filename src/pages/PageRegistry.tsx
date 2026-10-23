@@ -264,7 +264,7 @@ export const ALL_50_PAGES: PageDefinition[] = [
     title: "Secure Checkout & Payment",
     shortTitle: "Checkout",
     group: "Checkout & Cart",
-    description: "Shipping selection, verified address forms, and escrow payment",
+    description: "Shipping selection, verified address forms, and Paystack payment gateway",
     icon: CreditCard,
   },
   {
@@ -427,10 +427,10 @@ export const ALL_50_PAGES: PageDefinition[] = [
   {
     id: "seller_payouts",
     number: 40,
-    title: "Payouts, Escrow & Banking",
-    shortTitle: "Payouts & Escrow",
+    title: "Seller Earnings & Bank Payouts",
+    shortTitle: "Earnings & Payouts",
     group: "Seller Suite",
-    description: "Withdrawal schedule, available balance, bank transfer settings",
+    description: "Verified Paystack sales revenue, commission breakdown, and bank transfers",
     icon: Wallet,
   },
   {

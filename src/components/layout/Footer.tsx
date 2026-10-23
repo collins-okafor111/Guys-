@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="space-y-3 md:col-span-2">
             <ShopzaLogo variant="compact" />
             <p className="text-slate-400 leading-relaxed text-[11px] max-w-sm mt-3">
-              Shopza is the verified buy & sell marketplace connecting buyers with independent merchants worldwide. Enjoy 1-click checkout, escrow guarantees, and direct merchant messaging.
+              Shopza is the verified buy & sell marketplace connecting buyers with independent merchants worldwide. Enjoy 1-click checkout, Paystack payment protection, and direct merchant messaging.
             </p>
             {onOpenPagesDirectory && (
               <button
@@ -51,7 +51,7 @@ export const Footer: React.FC<FooterProps> = ({
                 className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0066FF] to-[#7928CA] text-white font-bold text-xs shadow-md shadow-blue-900/40"
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>Browse All 50 Marketplace Pages</span>
+                <span>Explore Marketplace Directory</span>
               </button>
             )}
           </div>
@@ -140,7 +140,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigate("seller_payouts")}
                   className="hover:text-purple-300 transition-colors"
                 >
-                  Escrow & Payouts
+                  Earnings & Payouts
                 </button>
               </li>
               <li>
@@ -210,7 +210,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>100% Encrypted Escrow Transactions</span>
+              <span>100% Encrypted Paystack Payments</span>
             </span>
           </div>
         </div>

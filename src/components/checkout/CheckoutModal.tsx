@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, ShieldCheck, CreditCard, ShoppingBag, MapPin, AlertCircle, ArrowRight } from "lucide-react";
 import { useFirebase } from "../../context/FirebaseContext";
 import { useAuth } from "../../context/AuthContext";
+import { initializePaystackPayment, verifyPaystackPayment, launchPaystackPopup } from "../../services/paystackService";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const { currentUser } = useAuth();
   const { getCart, createCheckoutOrder } = useFirebase();
 
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "delivery">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"paystack" | "delivery">("paystack");
   const [address, setAddress] = useState({
     fullName: currentUser?.name || "",
     address: "",
@@ -25,7 +26,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     state: "",
     zipCode: "",
     country: "United States",
-    phone: "",
+    phone: currentUser?.phone || "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,20 +39,78 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsSubmitting(true);
 
     try {
-      if (!address.fullName.trim() || !address.address.trim() || !address.city.trim() || !address.zipCode.trim()) {
-        throw new Error("Please complete all required shipping fields.");
+      if (!address.fullName.trim() || !address.address.trim() || !address.city.trim() || !address.phone.trim()) {
+        throw new Error("Please complete all required shipping fields (Name, Phone, Address, City).");
       }
 
-      const res = await createCheckoutOrder({
-        buyerId: currentUser._id,
-        shippingAddress: address,
-      });
+      setIsSubmitting(true);
 
-      onOrderSuccess(res.orderIds);
-      onClose();
+      if (paymentMethod === "paystack") {
+        const tempOrderId = `SPZ_${Date.now()}`;
+        const initResult = await initializePaystackPayment({
+          email: currentUser.email,
+          amount: cart.total,
+          orderId: tempOrderId,
+          currency: "NGN",
+          metadata: {
+            buyerId: currentUser._id,
+            buyerName: address.fullName,
+            shippingAddress: address,
+          },
+        });
+
+        const ref = initResult.reference;
+        const verifyRes = await verifyPaystackPayment(ref);
+
+        if (verifyRes.success) {
+          const res = await createCheckoutOrder({
+            buyerId: currentUser._id,
+            shippingAddress: address,
+            paymentMethod: "paystack",
+            paymentReference: ref,
+          });
+
+          sessionStorage.setItem(
+            "shopza_last_order",
+            JSON.stringify({
+              orderIds: res.orderIds,
+              reference: ref,
+              amount: cart.total,
+              method: "Paystack Verified",
+              shippingAddress: address,
+              paidAt: new Date().toISOString(),
+            })
+          );
+
+          onOrderSuccess(res.orderIds);
+          onClose();
+        } else {
+          throw new Error("Paystack transaction verification failed. Please try again.");
+        }
+      } else {
+        const res = await createCheckoutOrder({
+          buyerId: currentUser._id,
+          shippingAddress: address,
+          paymentMethod: "delivery",
+        });
+
+        sessionStorage.setItem(
+          "shopza_last_order",
+          JSON.stringify({
+            orderIds: res.orderIds,
+            reference: `COD_${Date.now()}`,
+            amount: cart.total,
+            method: "Pay on Delivery",
+            shippingAddress: address,
+            paidAt: "Pending on Delivery",
+          })
+        );
+
+        onOrderSuccess(res.orderIds);
+        onClose();
+      }
     } catch (err: any) {
       setError(err.message || "Failed to process checkout");
     } finally {
@@ -172,17 +231,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setPaymentMethod("card")}
+                onClick={() => setPaymentMethod("paystack")}
                 className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                  paymentMethod === "card"
-                    ? "border-purple-500 bg-[#171b34] text-white ring-1 ring-purple-500"
+                  paymentMethod === "paystack"
+                    ? "border-cyan-500 bg-cyan-950/30 text-white ring-1 ring-cyan-500"
                     : "border-purple-900/30 hover:bg-[#12162a] text-slate-400"
                 }`}
               >
-                <CreditCard className="w-4 h-4 text-purple-400 mt-0.5" />
+                <CreditCard className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-bold text-white">Credit / Debit Card</p>
-                  <p className="text-[11px] text-slate-400">Instant verification</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-white">Paystack Gateway</p>
+                    <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-cyan-500/20 text-cyan-300">
+                      Demo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Card, Bank • Test sandbox</p>
                 </div>
               </button>
 
@@ -195,13 +259,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     : "border-purple-900/30 hover:bg-[#12162a] text-slate-400"
                 }`}
               >
-                <ShoppingBag className="w-4 h-4 text-purple-400 mt-0.5" />
+                <ShoppingBag className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-white">Pay on Delivery</p>
                   <p className="text-[11px] text-slate-400">Pay upon package arrival</p>
                 </div>
               </button>
             </div>
+
+            {/* Paystack Demo Mode Notice */}
+            {paymentMethod === "paystack" && (
+              <div className="mt-3 p-3.5 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 text-cyan-200 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white flex items-center gap-1.5 text-[11px]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                    Demo Sandbox Payment Mode
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[9px] font-extrabold uppercase">
+                    Zero Real Money Charged
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  This checkout is connected to Paystack in <strong>Demo / Test Mode</strong>. No real money will ever be deducted from your bank or card. You can safely complete the test payment below to verify order placement.
+                </p>
+                <div className="p-2 rounded-xl bg-[#070914] border border-cyan-800/30 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                  <span>Demo Card: 4084 0840 8408 4080</span>
+                  <span className="text-cyan-300">CVV: 408 | Exp: 12/30</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Summary */}
